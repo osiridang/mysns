@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Trash2, Upload, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { projectId } from '/utils/supabase/info';
 import { ImageCropModal } from './ImageCropModal';
 
 interface BackgroundImage {
@@ -37,7 +37,7 @@ export function BackgroundImageManager({ selectedImageUrl, onSelectImage, access
         `https://${projectId}.supabase.co/functions/v1/make-server-3dc5a6da/background-images`,
         {
           headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
+            'Authorization': `Bearer ${accessToken}`,
           },
         }
       );
@@ -103,7 +103,7 @@ export function BackgroundImageManager({ selectedImageUrl, onSelectImage, access
           {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${publicAnonKey}`,
+              'Authorization': `Bearer ${accessToken}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
@@ -145,7 +145,7 @@ export function BackgroundImageManager({ selectedImageUrl, onSelectImage, access
         {
           method: 'DELETE',
           headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
+            'Authorization': `Bearer ${accessToken}`,
           },
         }
       );

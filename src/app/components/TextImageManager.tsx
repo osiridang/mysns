@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Trash2, Upload, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { projectId } from '/utils/supabase/info';
 
 interface TextImage {
   id: string;
@@ -34,7 +34,7 @@ export function TextImageManager({ selectedImageUrl, onSelectImage, accessToken 
         `https://${projectId}.supabase.co/functions/v1/make-server-3dc5a6da/text-images`,
         {
           headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
+            'Authorization': `Bearer ${accessToken}`,
           },
         }
       );
@@ -85,7 +85,7 @@ export function TextImageManager({ selectedImageUrl, onSelectImage, accessToken 
             {
               method: 'POST',
               headers: {
-                'Authorization': `Bearer ${publicAnonKey}`,
+                'Authorization': `Bearer ${accessToken}`,
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
@@ -142,7 +142,7 @@ export function TextImageManager({ selectedImageUrl, onSelectImage, accessToken 
         {
           method: 'DELETE',
           headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
+            'Authorization': `Bearer ${accessToken}`,
           },
         }
       );

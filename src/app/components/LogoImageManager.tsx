@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Trash2, Upload, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { projectId } from '/utils/supabase/info';
 
 interface LogoImage {
   id: string;
@@ -31,7 +31,7 @@ export function LogoImageManager({ selectedImageUrl, onSelectImage, accessToken 
         `https://${projectId}.supabase.co/functions/v1/make-server-3dc5a6da/logo-images`,
         {
           headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
+            'Authorization': `Bearer ${accessToken}`,
           },
         }
       );
@@ -79,7 +79,7 @@ export function LogoImageManager({ selectedImageUrl, onSelectImage, accessToken 
           {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${publicAnonKey}`,
+              'Authorization': `Bearer ${accessToken}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
@@ -119,7 +119,7 @@ export function LogoImageManager({ selectedImageUrl, onSelectImage, accessToken 
         {
           method: 'DELETE',
           headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
+            'Authorization': `Bearer ${accessToken}`,
           },
         }
       );
