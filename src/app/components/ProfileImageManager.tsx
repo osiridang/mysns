@@ -5,6 +5,13 @@ import { toast } from 'sonner';
 import { projectId } from '../../../utils/supabase/info';
 import { ImageCropModal } from './ImageCropModal';
 
+// 로컬 assets 이미지 import
+import 가디건이원택 from '../../assets/가디건이원택.png';
+import 강의하는이원택 from '../../assets/강의하는이원택.png';
+import 웃고있는이원택 from '../../assets/웃고있는이원택.png';
+import 이원택_정장 from '../../assets/이원택_정장.png';
+import 주먹불끈이원택 from '../../assets/주먹불끈이원택.png';
+
 interface ProfileImage {
   id: string;
   filename: string;
@@ -19,8 +26,47 @@ interface ProfileImageManagerProps {
   accessToken: string;
 }
 
+// 기본 이미지 목록
+const DEFAULT_PROFILE_IMAGES: ProfileImage[] = [
+  {
+    id: 'default-1',
+    filename: '주먹불끈이원택.png',
+    name: '주먹불끈이원택',
+    url: 주먹불끈이원택,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'default-2',
+    filename: '이원택_정장.png',
+    name: '이원택_정장',
+    url: 이원택_정장,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'default-3',
+    filename: '웃고있는이원택.png',
+    name: '웃고있는이원택',
+    url: 웃고있는이원택,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'default-4',
+    filename: '강의하는이원택.png',
+    name: '강의하는이원택',
+    url: 강의하는이원택,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'default-5',
+    filename: '가디건이원택.png',
+    name: '가디건이원택',
+    url: 가디건이원택,
+    createdAt: new Date().toISOString(),
+  },
+];
+
 export function ProfileImageManager({ selectedImageUrl, onSelectImage, accessToken }: ProfileImageManagerProps) {
-  const [images, setImages] = useState<ProfileImage[]>([]);
+  const [images, setImages] = useState<ProfileImage[]>(DEFAULT_PROFILE_IMAGES);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,10 +91,12 @@ export function ProfileImageManager({ selectedImageUrl, onSelectImage, accessTok
       }
 
       const data = await response.json();
-      setImages(data.images || []);
+      // 기본 이미지 + Supabase 이미지 합치기
+      setImages([...DEFAULT_PROFILE_IMAGES, ...(data.images || [])]);
     } catch (error) {
       console.error('Error fetching profile images:', error);
-      toast.error('프로필 이미지를 불러오는데 실패했습니다.');
+      // 에러 발생해도 기본 이미지는 표시
+      setImages(DEFAULT_PROFILE_IMAGES);
     } finally {
       setLoading(false);
     }
@@ -238,16 +286,25 @@ export function ProfileImageManager({ selectedImageUrl, onSelectImage, accessTok
                   </div>
                 )}
 
-                {/* Delete Button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(image.id);
-                  }}
-                  className="absolute bottom-8 right-2 bg-red-500 text-white rounded p-1.5 hover:bg-red-600 transition-colors"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
+                {/* Default Image Badge */}
+                {image.id.startsWith('default-') && (
+                  <div className="absolute top-2 right-2 bg-green-600 text-white text-xs px-2 py-1 rounded-full font-medium">
+                    기본
+                  </div>
+                )}
+
+                {/* Delete Button - only for uploaded images */}
+                {!image.id.startsWith('default-') && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(image.id);
+                    }}
+                    className="absolute bottom-8 right-2 bg-red-500 text-white rounded p-1.5 hover:bg-red-600 transition-colors"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                )}
 
                 {/* Name */}
                 <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white px-2 py-1">
