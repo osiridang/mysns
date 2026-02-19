@@ -72,16 +72,37 @@
 
 ## 🚀 시작하기
 
-### 설치
+### 개발 환경 설정
+
 ```bash
 # 의존성 설치
-pnpm install
+npm install
+
+# 개발 서버 실행
+npm run dev
 ```
 
-### 개발 서버 실행
+개발 서버 실행 후:
+- **로컬**: http://localhost:5173/
+- **네트워크**: http://192.168.0.9:5173/
+
+### 프로덕션 배포
+
+**상세 가이드**: [DEPLOYMENT.md](./DEPLOYMENT.md) 참조
+
+**간단 요약**:
+1. GitHub 저장소 생성 및 푸시
+2. Supabase 프로젝트 설정
+3. Vercel에서 Import 및 환경 변수 설정
+4. 배포 완료! 🎉
+
 ```bash
-# 프론트엔드 개발 서버
-pnpm dev
+# GitHub에 푸시
+git remote add origin https://github.com/YOUR_USERNAME/mysns.git
+git push -u origin main
+
+# Vercel이 자동으로 배포
+# → https://mysns-xxxxx.vercel.app
 ```
 
 ### 환경 변수 설정

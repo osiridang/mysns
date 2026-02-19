@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Trash2, Upload, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { projectId } from '../../../utils/supabase/info';
 import { ImageCropModal } from './ImageCropModal';
 
 interface ProfileImage {
@@ -35,7 +35,7 @@ export function ProfileImageManager({ selectedImageUrl, onSelectImage, accessTok
         `https://${projectId}.supabase.co/functions/v1/make-server-3dc5a6da/profile-images`,
         {
           headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
+            'Authorization': `Bearer ${accessToken}`,
           },
         }
       );
@@ -89,7 +89,7 @@ export function ProfileImageManager({ selectedImageUrl, onSelectImage, accessTok
   const handleCropComplete = async (croppedBlob: Blob) => {
     setUploading(true);
     setCropModalOpen(false);
-    
+
     try {
       // Convert blob to base64
       const reader = new FileReader();
@@ -101,7 +101,7 @@ export function ProfileImageManager({ selectedImageUrl, onSelectImage, accessTok
           {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${publicAnonKey}`,
+              'Authorization': `Bearer ${accessToken}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
@@ -143,7 +143,7 @@ export function ProfileImageManager({ selectedImageUrl, onSelectImage, accessTok
         {
           method: 'DELETE',
           headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
+            'Authorization': `Bearer ${accessToken}`,
           },
         }
       );
