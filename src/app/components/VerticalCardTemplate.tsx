@@ -17,10 +17,11 @@ interface VerticalCardTemplateProps {
   backgroundImageUrl?: string;
   textImageUrls?: string[];
   logoUrl?: string;
+  copyrightUrl?: string;
 }
 
 export const VerticalCardTemplate = forwardRef<HTMLDivElement, VerticalCardTemplateProps>(
-  ({ headline1, headline2, subheadline, bodyTexts, bgColor, imageUrl, backgroundImageUrl, textImageUrls = [], logoUrl }, ref) => {
+  ({ headline1, headline2, subheadline, bodyTexts, bgColor, imageUrl, backgroundImageUrl, textImageUrls = [], logoUrl, copyrightUrl }, ref) => {
     return (
       <div
         ref={ref}
@@ -117,6 +118,17 @@ export const VerticalCardTemplate = forwardRef<HTMLDivElement, VerticalCardTempl
             />
           ))}
         </div>
+
+        {/* 하단 카피라이트 이미지 */}
+        {copyrightUrl && (
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20">
+            <ImageWithFallback
+              src={copyrightUrl}
+              alt="Copyright"
+              className="h-8 w-auto object-contain opacity-90"
+            />
+          </div>
+        )}
       </div>
     );
   }

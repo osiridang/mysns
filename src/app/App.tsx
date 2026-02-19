@@ -506,6 +506,7 @@ export default function App() {
     const backgroundImageUrl = formData.backgroundImageUrl;
     const textImageUrls = formData.textImageUrls;
     const logoUrl = formData.logoUrl;
+    const copyrightUrl = formData.copyrightUrl;
     
     switch (selectedTemplate) {
       case 'horizontal-card':
@@ -521,6 +522,7 @@ export default function App() {
             backgroundImageUrl={backgroundImageUrl}
             textImageUrls={textImageUrls}
             logoUrl={logoUrl}
+            copyrightUrl={copyrightUrl}
           />
         );
       case 'quad-layout':
@@ -536,6 +538,7 @@ export default function App() {
             textImageUrls={textImageUrls}
             logoUrl={logoUrl}
             iconNames={formData.iconNames}
+            copyrightUrl={copyrightUrl}
           />
         );
       case 'vertical-list-card':
@@ -553,6 +556,7 @@ export default function App() {
             textImageUrls={textImageUrls}
             logoUrl={logoUrl}
             iconNames={formData.iconNames}
+            copyrightUrl={copyrightUrl}
           />
         );
       case 'vertical-card':
@@ -568,6 +572,7 @@ export default function App() {
             backgroundImageUrl={backgroundImageUrl}
             textImageUrls={textImageUrls}
             logoUrl={logoUrl}
+            copyrightUrl={copyrightUrl}
           />
         );
       default:

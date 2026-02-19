@@ -22,10 +22,11 @@ interface VerticalListCardTemplateProps {
   textImageUrls?: string[];
   logoUrl?: string;
   iconNames?: string[];
+  copyrightUrl?: string;
 }
 
 export const VerticalListCardTemplate = forwardRef<HTMLDivElement, VerticalListCardTemplateProps>(
-  ({ headlines = [], items = [], bgColor, imageUrl, backgroundImageUrl, textImageUrls = [], logoUrl, iconNames = [] }, ref) => {
+  ({ headlines = [], items = [], bgColor, imageUrl, backgroundImageUrl, textImageUrls = [], logoUrl, iconNames = [], copyrightUrl }, ref) => {
     const defaultItems = [
       '탄소 제로의 심장, 새만금 국제에너지도시',
       '스마트 농생명, 미래 양보의 핵심',
@@ -187,6 +188,17 @@ export const VerticalListCardTemplate = forwardRef<HTMLDivElement, VerticalListC
         <div className="absolute top-[15%] left-1/2 transform -translate-x-1/2 z-10 flex flex-col gap-3 items-center">
           {/* 텍스트 이미지 삭제됨 */}
         </div>
+
+        {/* 하단 카피라이트 이미지 */}
+        {copyrightUrl && (
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20">
+            <ImageWithFallback
+              src={copyrightUrl}
+              alt="Copyright"
+              className="h-8 w-auto object-contain opacity-90"
+            />
+          </div>
+        )}
       </div>
     );
   }
