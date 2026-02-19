@@ -147,7 +147,7 @@ export default function App() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
 
-  // 템플릿 스케일 자동 조정 - 너비와 높이 모두 고려
+  // 템플릿 스케일 자동 조정 - 너비와 높이 모두 고려 (동적 패딩)
   useEffect(() => {
     const updateScale = () => {
       if (containerRef.current) {
@@ -155,27 +155,36 @@ export default function App() {
         const containerHeight = containerRef.current.clientHeight;
         const templateWidth = 720;  // TEMPLATE_DIMENSIONS.width
         const templateHeight = 1200; // TEMPLATE_DIMENSIONS.height
-        const padding = 96; // p-12 = 48px * 2 (양쪽)
-        
+
+        // 화면 크기별 동적 패딩 계산
+        let padding = 32; // 기본값: sm 기준 (p-2 = 8px * 2)
+        if (containerWidth >= 1024) {
+          padding = 96; // lg: p-12 = 48px * 2
+        } else if (containerWidth >= 768) {
+          padding = 48; // md: p-6 = 24px * 2
+        } else if (containerWidth >= 640) {
+          padding = 24; // sm: p-3 = 12px * 2
+        }
+
         // 가용 공간 계산
         const availableWidth = containerWidth - padding;
         const availableHeight = containerHeight - padding;
-        
+
         // 너비와 높이 기준 스케일 중 더 작은 값 선택 (템플릿 전체가 보이도록)
         const scaleByWidth = availableWidth / templateWidth;
         const scaleByHeight = availableHeight / templateHeight;
         const newScale = Math.min(scaleByWidth, scaleByHeight, 1); // 최대 1 (확대 방지)
-        
+
         setScale(newScale);
       }
     };
 
     updateScale();
     window.addEventListener('resize', updateScale);
-    
+
     // 템플릿이 변경될 때도 스케일 재계산
     const timer = setTimeout(updateScale, 100);
-    
+
     return () => {
       window.removeEventListener('resize', updateScale);
       clearTimeout(timer);
@@ -781,7 +790,7 @@ export default function App() {
         {/* 오른쪽 메인 캔버스 영역 */}
         <main
           ref={containerRef}
-          className="flex-1 bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center p-4 md:p-6 lg:p-12 min-h-0"
+          className="flex-1 bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center p-2 sm:p-3 md:p-6 lg:p-12 min-h-0"
         >
           <div className="shadow-2xl rounded-lg overflow-hidden">
             <div style={{
