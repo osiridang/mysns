@@ -157,13 +157,13 @@ export default function App() {
         const templateHeight = 1200; // TEMPLATE_DIMENSIONS.height
 
         // 화면 크기별 동적 패딩 계산
-        let padding = 32; // 기본값: sm 기준 (p-2 = 8px * 2)
+        let padding = 16; // 기본값: xs 기준 (매우 작음)
         if (containerWidth >= 1024) {
           padding = 96; // lg: p-12 = 48px * 2
         } else if (containerWidth >= 768) {
           padding = 48; // md: p-6 = 24px * 2
         } else if (containerWidth >= 640) {
-          padding = 24; // sm: p-3 = 12px * 2
+          padding = 20; // sm: 최소한의 패딩
         }
 
         // 가용 공간 계산
@@ -790,7 +790,7 @@ export default function App() {
         {/* 오른쪽 메인 캔버스 영역 */}
         <main
           ref={containerRef}
-          className="flex-1 bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center p-2 sm:p-3 md:p-6 lg:p-12 min-h-0"
+          className="flex-1 bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center p-1 sm:p-2 md:p-6 lg:p-12 min-h-0 overflow-auto"
         >
           <div className="shadow-2xl rounded-lg overflow-hidden">
             <div style={{
