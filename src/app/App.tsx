@@ -48,6 +48,7 @@ export default function App() {
       backgroundImageUrl: '',
       textImageUrls: [DEFAULT_IMAGES.label] as string[],
       logoUrl: DEFAULT_IMAGES.logo,
+      copyrightUrl: DEFAULT_IMAGES.copyright,
     },
     'quad-layout': {
       headlines: [
@@ -59,6 +60,7 @@ export default function App() {
       backgroundImageUrl: '',
       textImageUrls: [DEFAULT_IMAGES.label] as string[],
       logoUrl: DEFAULT_IMAGES.logo,
+      copyrightUrl: DEFAULT_IMAGES.copyright,
       items: [
         '탄소 제로의 심장, 새만금 국제에너지도시',
         '스마트 농생명, 미래 양보의 핵심',
@@ -83,6 +85,7 @@ export default function App() {
       backgroundImageUrl: '',
       textImageUrls: [DEFAULT_IMAGES.label] as string[],
       logoUrl: DEFAULT_IMAGES.logo,
+      copyrightUrl: DEFAULT_IMAGES.copyright,
       items: [
         '탄소 제로의 심장, 새만금 국제에너지도시',
         '스마트 농생명, 미래 양보의 핵심',
@@ -101,6 +104,7 @@ export default function App() {
       backgroundImageUrl: '',
       textImageUrls: [DEFAULT_IMAGES.label] as string[],
       logoUrl: DEFAULT_IMAGES.logo,
+      copyrightUrl: DEFAULT_IMAGES.copyright,
     }
   };
 

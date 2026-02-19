@@ -16,10 +16,12 @@ export const API_ENDPOINTS = {
 // Default Images
 import profileImage from '../assets/주먹불끈이원택.png';
 import logoImage from '../assets/LOGO_white.png';
+import copyrightImage from '../assets/하단카피라이트.png';
 
 export const DEFAULT_IMAGES = {
   profile: profileImage,
   logo: logoImage,
+  copyright: copyrightImage,
   label: '',
 };
 

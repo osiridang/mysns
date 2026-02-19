@@ -15,6 +15,7 @@ export interface HorizontalCardData {
   backgroundImageUrl: string;
   textImageUrls: string[];
   logoUrl: string;
+  copyrightUrl: string;
 }
 
 export interface QuadLayoutData {
@@ -27,6 +28,7 @@ export interface QuadLayoutData {
   items: string[];
   itemDetails: string[][];
   iconNames: string[];
+  copyrightUrl: string;
 }
 
 export interface VerticalListCardData {
@@ -38,6 +40,7 @@ export interface VerticalListCardData {
   logoUrl: string;
   items: string[];
   iconNames: string[];
+  copyrightUrl: string;
 }
 
 export interface VerticalCardData {
@@ -50,6 +53,7 @@ export interface VerticalCardData {
   backgroundImageUrl: string;
   textImageUrls: string[];
   logoUrl: string;
+  copyrightUrl: string;
 }
 
 export type TemplateData = {

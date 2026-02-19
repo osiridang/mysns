@@ -12,10 +12,11 @@ interface HorizontalCardTemplateProps {
   backgroundImageUrl?: string;
   textImageUrls?: string[];
   logoUrl?: string;
+  copyrightUrl?: string;
 }
 
 export const HorizontalCardTemplate = forwardRef<HTMLDivElement, HorizontalCardTemplateProps>(
-  ({ headline1, headline2, subheadline, bodyText, bgColor, imageUrl, backgroundImageUrl, textImageUrls = [], logoUrl }, ref) => {
+  ({ headline1, headline2, subheadline, bodyText, bgColor, imageUrl, backgroundImageUrl, textImageUrls = [], logoUrl, copyrightUrl }, ref) => {
     return (
       <div
         ref={ref}
@@ -80,6 +81,17 @@ export const HorizontalCardTemplate = forwardRef<HTMLDivElement, HorizontalCardT
         {textImageUrls && textImageUrls.length > 0 && (
           <div className="absolute top-8 left-1/2 transform -translate-x-1/2 flex flex-col gap-4 items-center z-20">
             {/* 텍스트 이미지 삭제됨 */}
+          </div>
+        )}
+
+        {/* 하단 카피라이트 이미지 */}
+        {copyrightUrl && (
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20">
+            <ImageWithFallback
+              src={copyrightUrl}
+              alt="Copyright"
+              className="h-8 w-auto object-contain opacity-90"
+            />
           </div>
         )}
       </div>
