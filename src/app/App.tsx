@@ -14,7 +14,8 @@ import { QuadLayoutTemplate } from '@/app/components/QuadLayoutTemplate';
 import { VerticalListCardTemplate } from '@/app/components/VerticalListCardTemplate';
 import { VerticalCardTemplate } from '@/app/components/VerticalCardTemplate';
 import { Button } from '@/app/components/ui/button';
-import { Download, Share2, Save, Layout, Edit, ImageIcon, FolderOpen, Type, LogOut, Image as ImageIconLucide, Braces, BookmarkPlus } from 'lucide-react';
+import { Sheet, SheetContent } from '@/app/components/ui/sheet';
+import { Download, Share2, Save, Layout, Edit, ImageIcon, FolderOpen, Type, LogOut, Image as ImageIconLucide, Braces, BookmarkPlus, Menu, X } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { LoginPage } from '@/app/components/LoginPage';
 import { TemplateType, TemplateData } from '@/types';
@@ -30,6 +31,7 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [accessToken, setAccessToken] = useState<string>('');
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   // 🚀 개발 모드일 때는 publicAnonKey 사용 (유효한 토큰)
   const effectiveAccessToken = DEV_MODE ? publicAnonKey : accessToken;
@@ -552,140 +554,150 @@ export default function App() {
       <Toaster position="top-center" />
       
       {/* 상단 헤더 */}
-      <header className="bg-white shadow-sm border-b sticky top-0 z-10">
-        <div className="px-6 py-3 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">{appTitle}</h1>
-            <p className="text-xs text-gray-600">{appSubtitle}</p>
+      <header className="bg-white shadow-sm border-b sticky top-0 z-20">
+        <div className="px-4 md:px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={() => setDrawerOpen(true)}
+              variant="ghost"
+              size="sm"
+              className="md:hidden"
+            >
+              <Menu className="w-5 h-5" />
+            </Button>
+            <div>
+              <h1 className="text-lg md:text-xl font-bold text-gray-900">{appTitle}</h1>
+              <p className="text-xs text-gray-600 hidden sm:block">{appSubtitle}</p>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button onClick={handleShowCurrentValues} variant="outline" size="sm" className="gap-2 bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-300">
+          <div className="flex gap-1 md:gap-2 overflow-x-auto">
+            <Button onClick={handleShowCurrentValues} variant="outline" size="sm" className="hidden sm:flex gap-2 bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-300 flex-shrink-0">
               <Braces className="w-4 h-4" />
-              현재값 확인
+              <span className="hidden md:inline">현재값 확인</span>
             </Button>
-            <Button onClick={handleSaveContent} variant="outline" size="sm" className="gap-2 bg-green-50 hover:bg-green-100 text-green-700 border-green-300">
+            <Button onClick={handleSaveContent} variant="outline" size="sm" className="hidden sm:flex gap-2 bg-green-50 hover:bg-green-100 text-green-700 border-green-300 flex-shrink-0">
               <BookmarkPlus className="w-4 h-4" />
-              내용 저장
+              <span className="hidden md:inline">내용 저장</span>
             </Button>
-            <Button onClick={handleShare} variant="outline" size="sm" className="gap-2">
+            <Button onClick={handleShare} variant="outline" size="sm" className="gap-2 flex-shrink-0">
               <Share2 className="w-4 h-4" />
-              공유
+              <span className="hidden md:inline">공유</span>
             </Button>
-            <Button onClick={handleDownload} size="sm" className="gap-2">
+            <Button onClick={handleDownload} size="sm" className="gap-2 flex-shrink-0">
               <Download className="w-4 h-4" />
-              다운로드
+              <span className="hidden md:inline">다운로드</span>
             </Button>
-            <Button onClick={handleSave} variant="outline" size="sm" className="gap-2">
+            <Button onClick={handleSave} variant="outline" size="sm" className="hidden sm:flex gap-2 flex-shrink-0">
               <Save className="w-4 h-4" />
-              저장
+              <span className="hidden md:inline">저장</span>
             </Button>
-            <Button onClick={handleLogout} variant="outline" size="sm" className="gap-2">
+            <Button onClick={handleLogout} variant="outline" size="sm" className="hidden sm:flex gap-2 flex-shrink-0">
               <LogOut className="w-4 h-4" />
-              로그아웃
+              <span className="hidden md:inline">로그아웃</span>
             </Button>
           </div>
         </div>
         
-        {/* GNB 메뉴 */}
-        <div className="border-t">
-          <nav className="flex">
+        {/* GNB 메뉴 - 데스크톱 */}
+        <div className="border-t hidden md:block">
+          <nav className="flex overflow-x-auto">
             <button
               onClick={() => setActiveTab('template')}
-              className={`flex-1 px-6 py-3 flex items-center justify-center gap-2 text-sm font-medium transition-colors ${
+              className={`flex-1 px-4 md:px-6 py-2 md:py-3 flex items-center justify-center gap-2 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'template'
                   ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               <Layout className="w-4 h-4" />
-              템플릿 선택
+              <span className="hidden md:inline">템플릿 선택</span>
             </button>
             <button
               onClick={() => setActiveTab('edit')}
-              className={`flex-1 px-6 py-3 flex items-center justify-center gap-2 text-sm font-medium transition-colors ${
+              className={`flex-1 px-4 md:px-6 py-2 md:py-3 flex items-center justify-center gap-2 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'edit'
                   ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               <Edit className="w-4 h-4" />
-              내용 편집
+              <span className="hidden md:inline">내용 편집</span>
             </button>
             <button
               onClick={() => setActiveTab('profile')}
-              className={`flex-1 px-6 py-3 flex items-center justify-center gap-2 text-sm font-medium transition-colors ${
+              className={`flex-1 px-4 md:px-6 py-2 md:py-3 flex items-center justify-center gap-2 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'profile'
                   ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               <ImageIcon className="w-4 h-4" />
-              후보 얼굴 관리
+              <span className="hidden lg:inline">후보 얼굴 관리</span>
             </button>
             <button
               onClick={() => setActiveTab('background')}
-              className={`flex-1 px-6 py-3 flex items-center justify-center gap-2 text-sm font-medium transition-colors ${
+              className={`flex-1 px-4 md:px-6 py-2 md:py-3 flex items-center justify-center gap-2 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'background'
                   ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               <ImageIconLucide className="w-4 h-4" />
-              배경 이미지 관리
+              <span className="hidden lg:inline">배경 이미지</span>
             </button>
             <button
               onClick={() => setActiveTab('textimage')}
-              className={`flex-1 px-6 py-3 flex items-center justify-center gap-2 text-sm font-medium transition-colors ${
+              className={`flex-1 px-4 md:px-6 py-2 md:py-3 flex items-center justify-center gap-2 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'textimage'
                   ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               <Type className="w-4 h-4" />
-              텍스트 이미지 관리
+              <span className="hidden lg:inline">텍스트 이미지</span>
             </button>
             <button
               onClick={() => setActiveTab('logo')}
-              className={`flex-1 px-6 py-3 flex items-center justify-center gap-2 text-sm font-medium transition-colors ${
+              className={`flex-1 px-4 md:px-6 py-2 md:py-3 flex items-center justify-center gap-2 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'logo'
                   ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               <Braces className="w-4 h-4" />
-              로고 이미지 관리
+              <span className="hidden lg:inline">로고 이미지</span>
             </button>
             <button
               onClick={() => setActiveTab('saved')}
-              className={`flex-1 px-6 py-3 flex items-center justify-center gap-2 text-sm font-medium transition-colors ${
+              className={`flex-1 px-4 md:px-6 py-2 md:py-3 flex items-center justify-center gap-2 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'saved'
                   ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               <FolderOpen className="w-4 h-4" />
-              저장된 이미지
+              <span className="hidden lg:inline">저장된 이미지</span>
             </button>
             <button
               onClick={() => setActiveTab('saved-contents')}
-              className={`flex-1 px-6 py-3 flex items-center justify-center gap-2 text-sm font-medium transition-colors ${
+              className={`flex-1 px-4 md:px-6 py-2 md:py-3 flex items-center justify-center gap-2 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'saved-contents'
                   ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               <BookmarkPlus className="w-4 h-4" />
-              저장된 내용
+              <span className="hidden lg:inline">저장된 내용</span>
             </button>
           </nav>
         </div>
       </header>
 
       {/* 메인 컨텐츠 영역 */}
-      <div className="flex flex-1 min-h-0">
-        {/* 왼쪽 사이드바 - 탭별 컨텐츠 표시 */}
-        <aside className="w-80 bg-white border-r overflow-y-auto flex-shrink-0">
-          <div className="p-4">
+      <div className="flex flex-col md:flex-row flex-1 min-h-0">
+        {/* 왼쪽 사이드바 - 데스크톱만 표시 */}
+        <aside className="hidden md:flex md:w-80 bg-white border-r overflow-y-auto flex-shrink-0">
+          <div className="p-4 w-full">
             {activeTab === 'template' && (
               <div>
                 <TemplateSelector
@@ -707,7 +719,7 @@ export default function App() {
 
             {activeTab === 'profile' && (
               <div>
-                <ProfileImageManager 
+                <ProfileImageManager
                   selectedImageUrl={formData.imageUrl}
                   onSelectImage={(url) => handleFormChange('imageUrl', url)}
                   accessToken={effectiveAccessToken}
@@ -717,7 +729,7 @@ export default function App() {
 
             {activeTab === 'background' && (
               <div>
-                <BackgroundImageManager 
+                <BackgroundImageManager
                   selectedImageUrl={formData.backgroundImageUrl}
                   onSelectImage={(url) => handleFormChange('backgroundImageUrl', url)}
                   accessToken={effectiveAccessToken}
@@ -729,7 +741,7 @@ export default function App() {
 
             {activeTab === 'textimage' && (
               <div>
-                <TextImageManager 
+                <TextImageManager
                   selectedImageUrl={formData.textImageUrls}
                   onSelectImage={(url) => handleFormChange('textImageUrls', url)}
                   accessToken={effectiveAccessToken}
@@ -739,7 +751,7 @@ export default function App() {
 
             {activeTab === 'logo' && (
               <div>
-                <LogoImageManager 
+                <LogoImageManager
                   selectedImageUrl={formData.logoUrl}
                   onSelectImage={(url) => handleFormChange('logoUrl', url)}
                   accessToken={effectiveAccessToken}
@@ -749,7 +761,7 @@ export default function App() {
 
             {activeTab === 'saved' && (
               <div>
-                <SavedImagesPanel 
+                <SavedImagesPanel
                   onLoadImage={handleLoadImage}
                   accessToken={effectiveAccessToken}
                 />
@@ -758,7 +770,7 @@ export default function App() {
 
             {activeTab === 'saved-contents' && (
               <div>
-                <SavedContentsPanel 
+                <SavedContentsPanel
                   onLoadContent={handleLoadContent}
                 />
               </div>
@@ -767,9 +779,9 @@ export default function App() {
         </aside>
 
         {/* 오른쪽 메인 캔버스 영역 */}
-        <main 
+        <main
           ref={containerRef}
-          className="flex-1 bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center p-12 min-h-0"
+          className="flex-1 bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center p-4 md:p-6 lg:p-12 min-h-0"
         >
           <div className="shadow-2xl rounded-lg overflow-hidden">
             <div style={{
@@ -782,6 +794,220 @@ export default function App() {
           </div>
         </main>
       </div>
+
+      {/* 모바일 사이드바 드로어 */}
+      <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <SheetContent side="left" className="w-80 p-0 flex flex-col">
+          {/* 드로어 헤더 */}
+          <div className="border-b p-4 flex items-center justify-between">
+            <h2 className="font-semibold text-gray-900">메뉴</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setDrawerOpen(false)}
+            >
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
+
+          {/* 드로어 GNB 메뉴 */}
+          <nav className="border-b divide-y">
+            <button
+              onClick={() => {
+                setActiveTab('template');
+                setDrawerOpen(false);
+              }}
+              className={`w-full px-4 py-3 flex items-center gap-3 text-sm font-medium transition-colors ${
+                activeTab === 'template'
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <Layout className="w-4 h-4" />
+              템플릿 선택
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('edit');
+                setDrawerOpen(false);
+              }}
+              className={`w-full px-4 py-3 flex items-center gap-3 text-sm font-medium transition-colors ${
+                activeTab === 'edit'
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <Edit className="w-4 h-4" />
+              내용 편집
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('profile');
+                setDrawerOpen(false);
+              }}
+              className={`w-full px-4 py-3 flex items-center gap-3 text-sm font-medium transition-colors ${
+                activeTab === 'profile'
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <ImageIcon className="w-4 h-4" />
+              후보 얼굴 관리
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('background');
+                setDrawerOpen(false);
+              }}
+              className={`w-full px-4 py-3 flex items-center gap-3 text-sm font-medium transition-colors ${
+                activeTab === 'background'
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <ImageIconLucide className="w-4 h-4" />
+              배경 이미지 관리
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('textimage');
+                setDrawerOpen(false);
+              }}
+              className={`w-full px-4 py-3 flex items-center gap-3 text-sm font-medium transition-colors ${
+                activeTab === 'textimage'
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <Type className="w-4 h-4" />
+              텍스트 이미지 관리
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('logo');
+                setDrawerOpen(false);
+              }}
+              className={`w-full px-4 py-3 flex items-center gap-3 text-sm font-medium transition-colors ${
+                activeTab === 'logo'
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <Braces className="w-4 h-4" />
+              로고 이미지 관리
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('saved');
+                setDrawerOpen(false);
+              }}
+              className={`w-full px-4 py-3 flex items-center gap-3 text-sm font-medium transition-colors ${
+                activeTab === 'saved'
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <FolderOpen className="w-4 h-4" />
+              저장된 이미지
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('saved-contents');
+                setDrawerOpen(false);
+              }}
+              className={`w-full px-4 py-3 flex items-center gap-3 text-sm font-medium transition-colors ${
+                activeTab === 'saved-contents'
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <BookmarkPlus className="w-4 h-4" />
+              저장된 내용
+            </button>
+          </nav>
+
+          {/* 드로어 콘텐츠 */}
+          <div className="flex-1 overflow-y-auto p-4">
+            {activeTab === 'template' && (
+              <div>
+                <TemplateSelector
+                  selectedTemplate={selectedTemplate}
+                  onTemplateChange={setSelectedTemplate}
+                />
+              </div>
+            )}
+
+            {activeTab === 'edit' && (
+              <div>
+                <EditorPanel
+                  templateType={selectedTemplate}
+                  formData={formData}
+                  onFormChange={handleFormChange}
+                />
+              </div>
+            )}
+
+            {activeTab === 'profile' && (
+              <div>
+                <ProfileImageManager
+                  selectedImageUrl={formData.imageUrl}
+                  onSelectImage={(url) => handleFormChange('imageUrl', url)}
+                  accessToken={effectiveAccessToken}
+                />
+              </div>
+            )}
+
+            {activeTab === 'background' && (
+              <div>
+                <BackgroundImageManager
+                  selectedImageUrl={formData.backgroundImageUrl}
+                  onSelectImage={(url) => handleFormChange('backgroundImageUrl', url)}
+                  accessToken={effectiveAccessToken}
+                  bgColor={formData.bgColor}
+                  onColorChange={(color) => handleFormChange('bgColor', color)}
+                />
+              </div>
+            )}
+
+            {activeTab === 'textimage' && (
+              <div>
+                <TextImageManager
+                  selectedImageUrl={formData.textImageUrls}
+                  onSelectImage={(url) => handleFormChange('textImageUrls', url)}
+                  accessToken={effectiveAccessToken}
+                />
+              </div>
+            )}
+
+            {activeTab === 'logo' && (
+              <div>
+                <LogoImageManager
+                  selectedImageUrl={formData.logoUrl}
+                  onSelectImage={(url) => handleFormChange('logoUrl', url)}
+                  accessToken={effectiveAccessToken}
+                />
+              </div>
+            )}
+
+            {activeTab === 'saved' && (
+              <div>
+                <SavedImagesPanel
+                  onLoadImage={handleLoadImage}
+                  accessToken={effectiveAccessToken}
+                />
+              </div>
+            )}
+
+            {activeTab === 'saved-contents' && (
+              <div>
+                <SavedContentsPanel
+                  onLoadContent={handleLoadContent}
+                />
+              </div>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
