@@ -1,0 +1,76 @@
+export type TemplateType = 'horizontal-card' | 'quad-layout' | 'vertical-list-card' | 'vertical-card';
+
+export interface Headline {
+  text: string;
+  color: string;
+}
+
+export interface HorizontalCardData {
+  headline1: string;
+  headline2: string;
+  subheadline: string;
+  bodyText: string;
+  bgColor: string;
+  imageUrl: string;
+  backgroundImageUrl: string;
+  textImageUrls: string[];
+  logoUrl: string;
+}
+
+export interface QuadLayoutData {
+  headlines: Headline[];
+  bgColor: string;
+  imageUrl: string;
+  backgroundImageUrl: string;
+  textImageUrls: string[];
+  logoUrl: string;
+  items: string[];
+  itemDetails: string[][];
+  iconNames: string[];
+}
+
+export interface VerticalListCardData {
+  headlines: Headline[];
+  bgColor: string;
+  imageUrl: string;
+  backgroundImageUrl: string;
+  textImageUrls: string[];
+  logoUrl: string;
+  items: string[];
+  iconNames: string[];
+}
+
+export interface VerticalCardData {
+  headline1: string;
+  headline2: string;
+  subheadline: string;
+  bodyTexts: string[];
+  bgColor: string;
+  imageUrl: string;
+  backgroundImageUrl: string;
+  textImageUrls: string[];
+  logoUrl: string;
+}
+
+export type TemplateData = {
+  'horizontal-card': HorizontalCardData;
+  'quad-layout': QuadLayoutData;
+  'vertical-list-card': VerticalListCardData;
+  'vertical-card': VerticalCardData;
+};
+
+export interface ProfileImage {
+  id: string;
+  filename: string;
+  name: string;
+  url: string | null;
+  createdAt: string;
+}
+
+export interface SavedContent {
+  id: string;
+  templateType: TemplateType;
+  data: HorizontalCardData | QuadLayoutData | VerticalListCardData | VerticalCardData;
+  timestamp: number;
+  title: string;
+}
