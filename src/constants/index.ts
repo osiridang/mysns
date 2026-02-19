@@ -15,7 +15,7 @@ export const API_ENDPOINTS = {
 
 // Default Images
 import profileImage from '../assets/주먹불끈이원택.png';
-import logoImage from '../assets/이원택_정장.png';
+import logoImage from '../assets/LOGO_white.png';
 
 export const DEFAULT_IMAGES = {
   profile: profileImage,
