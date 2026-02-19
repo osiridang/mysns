@@ -14,9 +14,12 @@ export const API_ENDPOINTS = {
 };
 
 // Default Images
+import profileImage from '../assets/주먹불끈이원택.png';
+import logoImage from '../assets/이원택_정장.png';
+
 export const DEFAULT_IMAGES = {
-  profile: 'https://images.unsplash.com/photo-1543132220-7bc04a0e790a?w=800&h=1200&fit=crop',
-  logo: 'https://images.unsplash.com/photo-1634942537034-2531766767d1?w=200&h=200&fit=crop',
+  profile: profileImage,
+  logo: logoImage,
   label: '',
 };
 

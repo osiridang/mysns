@@ -1,11 +1,12 @@
 import { forwardRef } from 'react';
 import { Zap, Sprout, Globe, TrendingUp, Heart, Star, Users, Target, Lightbulb, Award, LucideIcon } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { DEFAULT_IMAGES } from '@/constants';
 
-// 기본 이미지 URL
-const profileImage = 'https://images.unsplash.com/photo-1543132220-7bc04a0e790a?w=800&h=1200&fit=crop';
-const defaultLogo = 'https://images.unsplash.com/photo-1634942537034-2531766767d1?w=200&h=200&fit=crop';
-const labelImage = '';
+// 기본 이미지 사용
+const profileImage = DEFAULT_IMAGES.profile;
+const defaultLogo = DEFAULT_IMAGES.logo;
+const labelImage = DEFAULT_IMAGES.label;
 
 interface HeadlineItem {
   text: string;

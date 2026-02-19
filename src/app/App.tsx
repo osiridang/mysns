@@ -168,13 +168,16 @@ export default function App() {
         }
 
         // 실제 패딩값 (% 계산)
-        const padding = Math.max(
+        let padding = Math.max(
           containerWidth * paddingPercent,
           containerHeight * paddingPercent
         );
 
-        // 패딩을 상태에 저장
-        setContainerPadding(padding);
+        // 상단 패딩은 매우 작게 (1/4으로)
+        const topPadding = padding * 0.15;
+
+        // 패딩을 상태에 저장 (상단은 별도로)
+        setContainerPadding(topPadding);
 
         // 가용 공간 계산
         const availableWidth = containerWidth - padding;
@@ -800,12 +803,15 @@ export default function App() {
         {/* 오른쪽 메인 캔버스 영역 */}
         <main
           ref={containerRef}
-          className="flex-1 bg-gradient-to-br from-gray-50 to-blue-50 flex items-start justify-start min-h-0 overflow-auto"
+          className="flex-1 bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center min-h-0 overflow-auto"
           style={{
-            padding: `${containerPadding}px`
+            paddingTop: `${containerPadding}px`,
+            paddingLeft: `${containerPadding * 2}px`,
+            paddingRight: `${containerPadding * 2}px`,
+            paddingBottom: `${containerPadding * 2}px`
           }}
         >
-          <div className="shadow-2xl rounded-lg overflow-hidden">
+          <div className="shadow-2xl rounded-lg overflow-hidden flex-shrink-0">
             <div style={{
               transform: `scale(${scale})`,
               transformOrigin: 'center center',
