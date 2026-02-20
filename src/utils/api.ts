@@ -3,6 +3,24 @@ import { API_BASE_URL, API_ENDPOINTS } from '@/constants';
 
 const getBaseUrl = () => API_BASE_URL(projectId);
 
+/** Supabase Edge Function 연결 확인 (개발 시 콘솔에서 확인용) */
+export async function checkSupabaseConnection(): Promise<{ ok: boolean; message: string }> {
+  const base = getBaseUrl();
+  if (!base || !projectId) {
+    return { ok: false, message: 'VITE_SUPABASE_URL이 없거나 projectId를 추출할 수 없습니다.' };
+  }
+  try {
+    const res = await fetch(`${base}${API_ENDPOINTS.HEALTH}`);
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data?.status === 'ok') {
+      return { ok: true, message: `Supabase 연결됨 (${projectId})` };
+    }
+    return { ok: false, message: `서버 응답 ${res.status}: ${JSON.stringify(data)}` };
+  } catch (e) {
+    return { ok: false, message: e instanceof Error ? e.message : '네트워크 오류' };
+  }
+}
+
 export const apiClient = {
   async post(endpoint: string, body: any, accessToken?: string) {
     const response = await fetch(`${getBaseUrl()}${endpoint}`, {
@@ -107,4 +125,11 @@ export const imageApi = {
 
   deleteLogoImage: (imageId: string, accessToken: string) =>
     apiClient.delete(`${API_ENDPOINTS.LOGO_IMAGES}/${imageId}`, accessToken),
+};
+
+/** 앱 기본값: 다른 브라우저/기기에서도 동일한 값 표시 */
+export const appDefaultsApi = {
+  get: () => apiClient.get(API_ENDPOINTS.APP_DEFAULTS),
+  save: (data: { templateData: any; appTitle: string; appSubtitle: string; selectedTemplate: string }, accessToken: string) =>
+    apiClient.post(API_ENDPOINTS.APP_DEFAULTS, data, accessToken),
 };

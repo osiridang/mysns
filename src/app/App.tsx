@@ -15,13 +15,13 @@ import { VerticalCardTemplate } from '@/app/components/VerticalCardTemplate';
 import { SquareLayoutTemplate } from '@/app/components/SquareLayoutTemplate';
 import { Button } from '@/app/components/ui/button';
 import { Sheet, SheetContent } from '@/app/components/ui/sheet';
-import { Download, Save, Menu, X, RotateCcw, Star } from 'lucide-react';
+import { Download, Save, Menu, X } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { LoginPage } from '@/app/components/LoginPage';
 import { TemplateType, TemplateData } from '@/types';
 import { STORAGE_KEYS } from '@/constants';
 import { DEFAULT_TEMPLATE_DATA } from '@/data/defaultTemplate';
-import { imageApi } from '@/utils/api';
+import { appDefaultsApi, checkSupabaseConnection } from '@/utils/api';
 import { useAuth } from '@/app/hooks/useAuth';
 import { useTemplateScale } from '@/app/hooks/useTemplateScale';
 import { NAV_TABS, type MenuTab } from '@/app/config/navTabs';
@@ -34,21 +34,7 @@ export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // 사용자 지정 기본값(있으면) 또는 앱 기본값 반환
-  const getBaseTemplateData = (): TemplateData => {
-    try {
-      const userDefault = localStorage.getItem(STORAGE_KEYS.USER_DEFAULT_TEMPLATE_DATA);
-      if (userDefault) {
-        const parsed = JSON.parse(userDefault) as TemplateData;
-        return { ...DEFAULT_TEMPLATE_DATA, ...parsed };
-      }
-    } catch (e) {
-      console.error('Failed to parse user default template data:', e);
-    }
-    return DEFAULT_TEMPLATE_DATA;
-  };
-
-  // localStorage에서 저장된 데이터 불러오기. 처음 열었을 때는 항상 코드 기본값(DEFAULT_TEMPLATE_DATA) 표시.
+  // 기본값은 항상 코드에 고정(defaultTemplate.ts). localStorage에 저장된 값만 병합.
   const loadSavedData = (): TemplateData => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.TEMPLATE_DATA);
@@ -56,8 +42,7 @@ export default function App() {
         return { ...DEFAULT_TEMPLATE_DATA };
       }
       const parsedData = JSON.parse(saved) as Partial<TemplateData>;
-      const base = getBaseTemplateData();
-      const result = { ...base };
+      const result = { ...DEFAULT_TEMPLATE_DATA };
       (Object.keys(result) as TemplateType[]).forEach((key) => {
         if (parsedData[key] && typeof parsedData[key] === 'object') {
           const merged = { ...result[key], ...parsedData[key] } as TemplateData[TemplateType];
@@ -148,6 +133,51 @@ export default function App() {
     }
   }, [appSubtitle]);
 
+  // 개발 시 Supabase 연결 여부 콘솔에 출력
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    checkSupabaseConnection().then(({ ok, message }) => {
+      if (ok) console.log('[Supabase]', message);
+      else console.warn('[Supabase 연결 실패]', message);
+    });
+  }, []);
+
+  // 서버에 저장된 앱 기본값 로드 (다른 브라우저에서도 동일한 값 표시)
+  useEffect(() => {
+    if (!isAuthenticated && !DEV_MODE) return;
+    let cancelled = false;
+    appDefaultsApi.get()
+      .then((res: any) => {
+        if (cancelled || !res || typeof res !== 'object') return;
+        const { templateData: serverTemplateData, appTitle: serverTitle, appSubtitle: serverSubtitle, selectedTemplate: serverTemplate } = res;
+        if (serverTemplateData && typeof serverTemplateData === 'object' && Object.keys(serverTemplateData).length > 0) {
+          const result = { ...DEFAULT_TEMPLATE_DATA };
+          (Object.keys(result) as TemplateType[]).forEach((key) => {
+            if (serverTemplateData[key] && typeof serverTemplateData[key] === 'object') {
+              const merged = { ...result[key], ...serverTemplateData[key] } as TemplateData[TemplateType];
+              if (key === 'horizontal-card') {
+                const h = merged as any;
+                if (h.bodyText && (!h.items || h.items.length === 0)) {
+                  h.items = [h.bodyText];
+                  h.iconNames = h.iconNames ?? ['Zap', 'Sprout', 'Globe', 'TrendingUp'];
+                }
+                delete h.bodyText;
+              }
+              result[key] = merged;
+            }
+          });
+          setTemplateData(result);
+        }
+        if (typeof serverTitle === 'string' && serverTitle.trim() !== '') setAppTitle(serverTitle.trim());
+        if (typeof serverSubtitle === 'string') setAppSubtitle(serverSubtitle);
+        if (typeof serverTemplate === 'string' && ['horizontal-card', 'quad-layout', 'vertical-list-card', 'vertical-card', 'square-layout'].includes(serverTemplate)) {
+          setSelectedTemplate(serverTemplate as TemplateType);
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [isAuthenticated]);
+
   // Show loading state while checking auth
   if (isCheckingAuth) {
     return (
@@ -175,22 +205,6 @@ export default function App() {
         [field]: value
       }
     }));
-  };
-
-  const handleResetToDefaults = () => {
-    setTemplateData(JSON.parse(JSON.stringify(DEFAULT_TEMPLATE_DATA)));
-    toast.success('모든 템플릿이 기본값으로 초기화되었습니다.');
-  };
-
-  /** 현재 설정(본문, 썸네일, 라벨 등)을 기본값으로 저장 → 이후 '기본값 초기화' 시 이 값으로 복원 */
-  const handleSaveAsDefault = () => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.USER_DEFAULT_TEMPLATE_DATA, JSON.stringify(templateData));
-      toast.success('현재 설정이 기본값으로 저장되었습니다. 앞으로 기본값 초기화 시 이 내용이 적용됩니다.');
-    } catch (error) {
-      console.error('Failed to save as default:', error);
-      toast.error('기본값 저장에 실패했습니다.');
-    }
   };
 
   /** 하단 문구(카피라이트)는 모든 템플릿에 동일 적용 */
@@ -259,27 +273,20 @@ export default function App() {
     }
   };
 
+  /** 현재 작업 상태(모든 템플릿 데이터·제목·선택)를 서버에 저장. 새로고침 시 이 내용이 로드됨. */
   const handleSave = async () => {
-    if (!templateRef.current) return;
     try {
-      toast.loading('이미지를 저장하고 있습니다...');
-      const dataUrl = await toPng(templateRef.current, {
-        quality: 1,
-        pixelRatio: 2,
-        cacheBust: true,
-      });
-      const metadata = {
-        template: selectedTemplate,
-        ...formData,
-        createdAt: new Date().toISOString(),
-      };
-      await imageApi.saveImage(dataUrl, metadata, effectiveAccessToken);
+      toast.loading('저장 중...');
+      await appDefaultsApi.save(
+        { templateData, appTitle, appSubtitle, selectedTemplate },
+        effectiveAccessToken
+      );
       toast.dismiss();
-      toast.success('이미지가 서버에 저장되었습니다!');
+      toast.success('저장했습니다. 새로고침해도 이 내용으로 보입니다.');
     } catch (error) {
       console.error('Save failed:', error);
       toast.dismiss();
-      toast.error(`저장에 실패했습니다: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`저장 실패: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -404,14 +411,6 @@ export default function App() {
             </div>
           </div>
           <div className="flex gap-1 md:gap-2 overflow-x-auto">
-            <Button onClick={handleSaveAsDefault} variant="outline" size="sm" className="hidden sm:flex gap-2 text-blue-700 border-blue-300 hover:bg-blue-50 flex-shrink-0">
-              <Star className="w-4 h-4" />
-              <span className="hidden md:inline">현재 값을 기본값으로</span>
-            </Button>
-            <Button onClick={handleResetToDefaults} variant="outline" size="sm" className="hidden sm:flex gap-2 text-amber-700 border-amber-300 hover:bg-amber-50 flex-shrink-0">
-              <RotateCcw className="w-4 h-4" />
-              <span className="hidden md:inline">기본값 초기화</span>
-            </Button>
             <Button onClick={handleDownload} size="sm" className="gap-2 flex-shrink-0">
               <Download className="w-4 h-4" />
               <span className="hidden md:inline">다운로드</span>

@@ -3,10 +3,12 @@ export const API_BASE_URL = (projectId: string) =>
   `https://${projectId}.supabase.co/functions/v1/make-server-3dc5a6da`;
 
 export const API_ENDPOINTS = {
+  HEALTH: '/health',
   LOGIN: '/login',
   VERIFY_SESSION: '/verify-session',
   SAVE_IMAGE: '/save-image',
   IMAGES: '/images',
+  APP_DEFAULTS: '/app-defaults',
   PROFILE_IMAGES: '/profile-images',
   BACKGROUND_IMAGES: '/background-images',
   TEXT_IMAGES: '/text-images',

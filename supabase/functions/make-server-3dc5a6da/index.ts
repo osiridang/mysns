@@ -190,6 +190,40 @@ app.get("/make-server-3dc5a6da/health", (c) => {
   return c.json({ status: "ok" });
 });
 
+const APP_DEFAULTS_KEY = "app:defaults";
+
+// 앱 기본값 조회 (다른 브라우저/기기에서도 동일한 값 로드용, 인증 없이 읽기 가능)
+app.get("/make-server-3dc5a6da/app-defaults", async (c) => {
+  try {
+    const data = await kv.get(APP_DEFAULTS_KEY);
+    return c.json(data ?? {});
+  } catch (e) {
+    console.error("app-defaults get error:", e);
+    return c.json({}, 200);
+  }
+});
+
+// 앱 기본값 저장 (현재 설정을 서버에 저장 → 다른 브라우저에서 열어도 동일한 값 표시)
+app.post("/make-server-3dc5a6da/app-defaults", requireAuth, async (c) => {
+  try {
+    const body = await c.req.json();
+    const { templateData, appTitle, appSubtitle, selectedTemplate } = body;
+    if (!templateData || typeof templateData !== "object") {
+      return c.json({ error: "templateData is required" }, 400);
+    }
+    await kv.set(APP_DEFAULTS_KEY, {
+      templateData,
+      appTitle: appTitle ?? "",
+      appSubtitle: appSubtitle ?? "",
+      selectedTemplate: selectedTemplate ?? "horizontal-card",
+    });
+    return c.json({ success: true });
+  } catch (e) {
+    console.error("app-defaults set error:", e);
+    return c.json({ error: "Failed to save defaults" }, 500);
+  }
+});
+
 // Save card news image
 app.post("/make-server-3dc5a6da/save-image", requireAuth, async (c) => {
   try {
