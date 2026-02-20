@@ -203,8 +203,8 @@ app.get("/make-server-3dc5a6da/app-defaults", async (c) => {
   }
 });
 
-// 앱 기본값 저장 (현재 설정을 서버에 저장 → 다른 브라우저에서 열어도 동일한 값 표시)
-app.post("/make-server-3dc5a6da/app-defaults", requireAuth, async (c) => {
+// 앱 기본값 저장 (로그인 없이 저장 가능 → 다시 열어서/새로고침해도 동일한 값 표시)
+app.post("/make-server-3dc5a6da/app-defaults", async (c) => {
   try {
     const body = await c.req.json();
     const { templateData, appTitle, appSubtitle, selectedTemplate } = body;

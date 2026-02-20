@@ -269,7 +269,7 @@ export default function App() {
     }
   };
 
-  /** 현재 작업 상태(모든 템플릿 데이터·제목·선택)를 서버에 저장. 새로고침 시 이 내용이 로드됨. */
+  /** 우측 상단 저장: 현재 설정된 값을 서버에 저장. 다시 열거나 새로고침하면 이 내용이 로드됨. */
   const handleSave = async () => {
     try {
       toast.loading('저장 중...');
@@ -278,7 +278,7 @@ export default function App() {
         effectiveAccessToken
       );
       toast.dismiss();
-      toast.success('저장했습니다. 새로고침해도 이 내용으로 보입니다.');
+      toast.success('저장했습니다. 다시 열거나 새로고침하면 이 내용으로 보입니다.');
     } catch (error) {
       console.error('Save failed:', error);
       toast.dismiss();
