@@ -17,20 +17,14 @@ import { Button } from '@/app/components/ui/button';
 import { Sheet, SheetContent } from '@/app/components/ui/sheet';
 import { Download, Save, Menu, X } from 'lucide-react';
 import { toPng } from 'html-to-image';
-import { LoginPage } from '@/app/components/LoginPage';
 import { TemplateType, TemplateData } from '@/types';
 import { STORAGE_KEYS } from '@/constants';
 import { DEFAULT_TEMPLATE_DATA } from '@/data/defaultTemplate';
 import { appDefaultsApi, checkSupabaseConnection } from '@/utils/api';
-import { useAuth } from '@/app/hooks/useAuth';
 import { useTemplateScale } from '@/app/hooks/useTemplateScale';
 import { NAV_TABS, type MenuTab } from '@/app/config/navTabs';
 
-// 로컬 개발(npm run dev) 시 로그인 없이 메인 화면 표시
-const DEV_MODE = import.meta.env.DEV;
-
 export default function App() {
-  const { isAuthenticated, accessToken, isCheckingAuth, login } = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -97,13 +91,7 @@ export default function App() {
   const templateRef = useRef<HTMLDivElement>(null);
   const { scale, containerPadding } = useTemplateScale(containerRef, selectedTemplate);
 
-  const effectiveAccessToken = DEV_MODE ? publicAnonKey : accessToken;
-
-  const handleLogin = async (id: string, password: string) => {
-    const ok = await login(id, password);
-    if (ok) toast.success('로그인 성공!');
-    return ok;
-  };
+  const effectiveAccessToken = publicAnonKey;
 
   // 🔄 템플릿 데이터가 변경될 때마다 localStorage에 자동 저장
   useEffect(() => {
@@ -153,7 +141,6 @@ export default function App() {
   // 서버에 저장된 앱 기본값 로드 (다른 브라우저에서도 동일한 값 표시)
   // 규칙: 서버 값으로 덮되, 서버가 빈 값이면 현재(로컬) 값을 유지 → 바꾼 기본값 되돌리지 않음
   useEffect(() => {
-    if (!isAuthenticated && !DEV_MODE) return;
     let cancelled = false;
     appDefaultsApi.get()
       .then((res: any) => {
@@ -204,26 +191,7 @@ export default function App() {
       })
       .catch(() => {});
     return () => { cancelled = true; };
-  }, [isAuthenticated]);
-
-  // Show loading state while checking auth
-  if (isCheckingAuth) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 to-blue-600 flex items-center justify-center">
-        <div className="text-white text-xl">로딩 중...</div>
-      </div>
-    );
-  }
-
-  // Show login page if not authenticated
-  if (!isAuthenticated && !DEV_MODE) {
-    return (
-      <>
-        <Toaster position="top-center" />
-        <LoginPage onLogin={handleLogin} />
-      </>
-    );
-  }
+  }, []);
 
   const handleFormChange = (field: string, value: any) => {
     setTemplateData(prev => ({
