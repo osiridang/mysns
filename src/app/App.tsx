@@ -34,28 +34,36 @@ export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // 기본값은 항상 코드에 고정(defaultTemplate.ts). localStorage에 저장된 값만 병합.
+  // 기본값은 코드 고정. localStorage와 병합할 때 저장된 값이 비어 있으면 기본값 유지(바꾼 값 되돌리지 않음).
   const loadSavedData = (): TemplateData => {
+    const isEmpty = (v: unknown): boolean =>
+      v === undefined || v === null || (typeof v === 'string' && !v.trim()) || (Array.isArray(v) && v.length === 0);
+    const hasValue = (v: unknown): boolean => !isEmpty(v);
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.TEMPLATE_DATA);
-      if (!saved) {
-        return { ...DEFAULT_TEMPLATE_DATA };
-      }
+      if (!saved) return { ...DEFAULT_TEMPLATE_DATA };
       const parsedData = JSON.parse(saved) as Partial<TemplateData>;
       const result = { ...DEFAULT_TEMPLATE_DATA };
       (Object.keys(result) as TemplateType[]).forEach((key) => {
-        if (parsedData[key] && typeof parsedData[key] === 'object') {
-          const merged = { ...result[key], ...parsedData[key] } as TemplateData[TemplateType];
-          if (key === 'horizontal-card') {
-            const h = merged as any;
-            if (h.bodyText && (!h.items || h.items.length === 0)) {
-              h.items = [h.bodyText];
-              h.iconNames = ['Zap', 'Sprout', 'Globe', 'TrendingUp'];
-            }
-            delete h.bodyText;
+        if (!parsedData[key] || typeof parsedData[key] !== 'object') return;
+        const defBlock = result[key] as Record<string, unknown>;
+        const savedBlock = parsedData[key] as Record<string, unknown>;
+        const merged = { ...defBlock };
+        Object.keys(savedBlock).forEach((field) => {
+          const sVal = savedBlock[field];
+          const dVal = defBlock[field];
+          if (isEmpty(sVal) && hasValue(dVal)) merged[field] = dVal;
+          else if (sVal !== undefined) merged[field] = sVal;
+        });
+        if (key === 'horizontal-card') {
+          const h = merged as any;
+          if (h.bodyText && (!h.items || h.items.length === 0)) {
+            h.items = [h.bodyText];
+            h.iconNames = ['Zap', 'Sprout', 'Globe', 'TrendingUp'];
           }
-          result[key] = merged;
+          delete h.bodyText;
         }
+        result[key] = merged as TemplateData[TemplateType];
       });
       return result;
     } catch (error) {
@@ -143,6 +151,7 @@ export default function App() {
   }, []);
 
   // 서버에 저장된 앱 기본값 로드 (다른 브라우저에서도 동일한 값 표시)
+  // 규칙: 서버 값으로 덮되, 서버가 빈 값이면 현재(로컬) 값을 유지 → 바꾼 기본값 되돌리지 않음
   useEffect(() => {
     if (!isAuthenticated && !DEV_MODE) return;
     let cancelled = false;
@@ -150,24 +159,43 @@ export default function App() {
       .then((res: any) => {
         if (cancelled || !res || typeof res !== 'object') return;
         const { templateData: serverTemplateData, appTitle: serverTitle, appSubtitle: serverSubtitle, selectedTemplate: serverTemplate } = res;
-        if (serverTemplateData && typeof serverTemplateData === 'object' && Object.keys(serverTemplateData).length > 0) {
-          const result = { ...DEFAULT_TEMPLATE_DATA };
-          (Object.keys(result) as TemplateType[]).forEach((key) => {
-            if (serverTemplateData[key] && typeof serverTemplateData[key] === 'object') {
-              const merged = { ...result[key], ...serverTemplateData[key] } as TemplateData[TemplateType];
-              if (key === 'horizontal-card') {
-                const h = merged as any;
-                if (h.bodyText && (!h.items || h.items.length === 0)) {
-                  h.items = [h.bodyText];
-                  h.iconNames = h.iconNames ?? ['Zap', 'Sprout', 'Globe', 'TrendingUp'];
-                }
-                delete h.bodyText;
+
+        const isEmpty = (v: unknown): boolean =>
+          v === undefined || v === null ||
+          (typeof v === 'string' && !v.trim()) ||
+          (Array.isArray(v) && v.length === 0);
+        const hasValue = (v: unknown): boolean => !isEmpty(v);
+
+        setTemplateData((prev) => {
+          if (!serverTemplateData || typeof serverTemplateData !== 'object' || Object.keys(serverTemplateData).length === 0) return prev;
+          const result = { ...prev } as TemplateData;
+          (Object.keys(serverTemplateData) as TemplateType[]).forEach((key) => {
+            const serverBlock = serverTemplateData[key];
+            if (!serverBlock || typeof serverBlock !== 'object') return;
+            const currentBlock = (result[key] ?? {}) as Record<string, unknown>;
+            const merged = { ...currentBlock };
+            Object.keys(serverBlock).forEach((field) => {
+              const sVal = serverBlock[field];
+              const cVal = currentBlock[field];
+              if (isEmpty(sVal) && hasValue(cVal)) {
+                merged[field] = cVal;
+              } else if (sVal !== undefined) {
+                merged[field] = sVal;
               }
-              result[key] = merged;
+            });
+            if (key === 'horizontal-card') {
+              const h = merged as any;
+              if (h.bodyText && (!h.items || h.items.length === 0)) {
+                h.items = [h.bodyText];
+                h.iconNames = h.iconNames ?? ['Zap', 'Sprout', 'Globe', 'TrendingUp'];
+              }
+              delete h.bodyText;
             }
+            result[key] = merged as TemplateData[TemplateType];
           });
-          setTemplateData(result);
-        }
+          return result;
+        });
+
         if (typeof serverTitle === 'string' && serverTitle.trim() !== '') setAppTitle(serverTitle.trim());
         if (typeof serverSubtitle === 'string') setAppSubtitle(serverSubtitle);
         if (typeof serverTemplate === 'string' && ['horizontal-card', 'quad-layout', 'vertical-list-card', 'vertical-card', 'square-layout'].includes(serverTemplate)) {
