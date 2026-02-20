@@ -1,14 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { TemplateSelector } from '@/app/components/TemplateSelector';
 import { EditorPanel } from '@/app/components/EditorPanel';
-import { SavedImagesPanel } from '@/app/components/SavedImagesPanel';
-import { SavedContentsPanel } from '@/app/components/SavedContentsPanel';
 import { ProfileImageManager } from '@/app/components/ProfileImageManager';
 import { BackgroundImageManager } from '@/app/components/BackgroundImageManager';
 import { TextImageManager } from '@/app/components/TextImageManager';
 import { LogoImageManager } from '@/app/components/LogoImageManager';
 import { CopyrightImageManager } from '@/app/components/CopyrightImageManager';
-import { projectId, publicAnonKey } from '@/config/supabase';
+import { publicAnonKey } from '@/config/supabase';
 import { Toaster, toast } from 'sonner';
 import { HorizontalCardTemplate } from '@/app/components/HorizontalCardTemplate';
 import { QuadLayoutTemplate } from '@/app/components/QuadLayoutTemplate';
@@ -17,25 +15,24 @@ import { VerticalCardTemplate } from '@/app/components/VerticalCardTemplate';
 import { SquareLayoutTemplate } from '@/app/components/SquareLayoutTemplate';
 import { Button } from '@/app/components/ui/button';
 import { Sheet, SheetContent } from '@/app/components/ui/sheet';
-import { Download, Save, Layout, Edit, ImageIcon, FolderOpen, Type, LogOut, Image as ImageIconLucide, Braces, BookmarkPlus, Menu, X, FileText, RotateCcw, Star } from 'lucide-react';
+import { Download, Save, Menu, X, RotateCcw, Star } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { LoginPage } from '@/app/components/LoginPage';
 import { TemplateType, TemplateData } from '@/types';
 import { STORAGE_KEYS } from '@/constants';
 import { DEFAULT_TEMPLATE_DATA } from '@/data/defaultTemplate';
-import { authApi, imageApi } from '@/utils/api';
+import { imageApi } from '@/utils/api';
+import { useAuth } from '@/app/hooks/useAuth';
+import { useTemplateScale } from '@/app/hooks/useTemplateScale';
+import { NAV_TABS, type MenuTab } from '@/app/config/navTabs';
 
-const DEV_MODE = true;
-
-type MenuTab = 'template' | 'edit' | 'profile' | 'background' | 'textimage' | 'logo' | 'copyright' | 'saved' | 'saved-contents';
+// 로컬 개발(npm run dev) 시 로그인 없이 메인 화면 표시
+const DEV_MODE = import.meta.env.DEV;
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [accessToken, setAccessToken] = useState<string>('');
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const { isAuthenticated, accessToken, isCheckingAuth, login } = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
-
-  const effectiveAccessToken = DEV_MODE ? publicAnonKey : accessToken;
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // 사용자 지정 기본값(있으면) 또는 앱 기본값 반환
   const getBaseTemplateData = (): TemplateData => {
@@ -51,36 +48,35 @@ export default function App() {
     return DEFAULT_TEMPLATE_DATA;
   };
 
-  // localStorage에서 저장된 데이터 불러오기 (템플릿별로 기본값과 병합해 누락 필드 보정)
+  // localStorage에서 저장된 데이터 불러오기. 처음 열었을 때는 항상 코드 기본값(DEFAULT_TEMPLATE_DATA) 표시.
   const loadSavedData = (): TemplateData => {
     try {
-      const base = getBaseTemplateData();
       const saved = localStorage.getItem(STORAGE_KEYS.TEMPLATE_DATA);
-      if (saved) {
-        const parsedData = JSON.parse(saved) as Partial<TemplateData>;
-        const result = { ...base };
-        (Object.keys(result) as TemplateType[]).forEach((key) => {
-          if (parsedData[key] && typeof parsedData[key] === 'object') {
-            const merged = { ...result[key], ...parsedData[key] } as TemplateData[TemplateType];
-            // 1번 템플릿: 예전 bodyText → items 마이그레이션
-            if (key === 'horizontal-card') {
-              const h = merged as any;
-              if (h.bodyText && (!h.items || h.items.length === 0)) {
-                h.items = [h.bodyText];
-                h.iconNames = ['Zap', 'Sprout', 'Globe', 'TrendingUp'];
-              }
-              delete h.bodyText;
-            }
-            result[key] = merged;
-          }
-        });
-        return result;
+      if (!saved) {
+        return { ...DEFAULT_TEMPLATE_DATA };
       }
-      return base;
+      const parsedData = JSON.parse(saved) as Partial<TemplateData>;
+      const base = getBaseTemplateData();
+      const result = { ...base };
+      (Object.keys(result) as TemplateType[]).forEach((key) => {
+        if (parsedData[key] && typeof parsedData[key] === 'object') {
+          const merged = { ...result[key], ...parsedData[key] } as TemplateData[TemplateType];
+          if (key === 'horizontal-card') {
+            const h = merged as any;
+            if (h.bodyText && (!h.items || h.items.length === 0)) {
+              h.items = [h.bodyText];
+              h.iconNames = ['Zap', 'Sprout', 'Globe', 'TrendingUp'];
+            }
+            delete h.bodyText;
+          }
+          result[key] = merged;
+        }
+      });
+      return result;
     } catch (error) {
       console.error('Failed to load saved data:', error);
     }
-    return getBaseTemplateData();
+    return { ...DEFAULT_TEMPLATE_DATA };
   };
 
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>(() => {
@@ -106,65 +102,15 @@ export default function App() {
   const formData = templateData[selectedTemplate] ?? DEFAULT_TEMPLATE_DATA[selectedTemplate];
 
   const templateRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-  const [containerPadding, setContainerPadding] = useState(0);
+  const { scale, containerPadding } = useTemplateScale(containerRef, selectedTemplate);
 
-  // 템플릿 스케일 자동 조정 - 너비와 높이 모두 고려 (% 기반 동적 패딩)
-  useEffect(() => {
-    const updateScale = () => {
-      if (containerRef.current) {
-        const containerWidth = containerRef.current.clientWidth;
-        const containerHeight = containerRef.current.clientHeight;
-        const templateWidth = 720;  // TEMPLATE_DIMENSIONS.width
-        const templateHeight = 1200; // TEMPLATE_DIMENSIONS.height
+  const effectiveAccessToken = DEV_MODE ? publicAnonKey : accessToken;
 
-        // 화면 크기별 동적 패딩 계산 (% 기반)
-        let paddingPercent = 0.02; // 기본값: 2% (매우 작음)
-        if (containerWidth >= 1024) {
-          paddingPercent = 0.06; // 데스크톱: 6%
-        } else if (containerWidth >= 768) {
-          paddingPercent = 0.04; // 태블릿: 4%
-        } else if (containerWidth >= 640) {
-          paddingPercent = 0.03; // 소형: 3%
-        }
-
-        // 실제 패딩값 (% 계산)
-        let padding = Math.max(
-          containerWidth * paddingPercent,
-          containerHeight * paddingPercent
-        );
-
-        // 상단 패딩은 매우 작게 (1/4으로)
-        const topPadding = padding * 0.15;
-
-        // 패딩을 상태에 저장 (상단은 별도로)
-        setContainerPadding(topPadding);
-
-        // 가용 공간 계산
-        const availableWidth = containerWidth - padding;
-        const availableHeight = containerHeight - padding;
-
-        // 너비와 높이 기준 스케일 중 더 작은 값 선택 (템플릿 전체가 보이도록)
-        const scaleByWidth = availableWidth / templateWidth;
-        const scaleByHeight = availableHeight / templateHeight;
-        const newScale = Math.min(scaleByWidth, scaleByHeight, 1); // 최대 1 (확대 방지)
-
-        setScale(newScale);
-      }
-    };
-
-    updateScale();
-    window.addEventListener('resize', updateScale);
-
-    // 템플릿이 변경될 때도 스케일 재계산
-    const timer = setTimeout(updateScale, 100);
-
-    return () => {
-      window.removeEventListener('resize', updateScale);
-      clearTimeout(timer);
-    };
-  }, [selectedTemplate]);
+  const handleLogin = async (id: string, password: string) => {
+    const ok = await login(id, password);
+    if (ok) toast.success('로그인 성공!');
+    return ok;
+  };
 
   // 🔄 템플릿 데이터가 변경될 때마다 localStorage에 자동 저장
   useEffect(() => {
@@ -202,50 +148,6 @@ export default function App() {
     }
   }, [appSubtitle]);
 
-  // Check authentication on mount
-  useEffect(() => {
-    const checkAuth = async () => {
-      const storedToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-      if (storedToken) {
-        try {
-          await authApi.verifySession(storedToken);
-          setAccessToken(storedToken);
-          setIsAuthenticated(true);
-        } catch (error) {
-          console.error('Auth check failed:', error);
-          localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-        }
-      }
-      setIsCheckingAuth(false);
-    };
-
-    checkAuth();
-  }, []);
-
-  const handleLogin = async (email: string, password: string): Promise<boolean> => {
-    try {
-      const data = await authApi.login(email, password);
-      if (data.accessToken) {
-        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.accessToken);
-        setAccessToken(data.accessToken);
-        setIsAuthenticated(true);
-        toast.success('로그인 성공!');
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error('Login error:', error);
-      return false;
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-    setAccessToken('');
-    setIsAuthenticated(false);
-    toast.info('로그아웃되었습니다.');
-  };
-
   // Show loading state while checking auth
   if (isCheckingAuth) {
     return (
@@ -276,8 +178,7 @@ export default function App() {
   };
 
   const handleResetToDefaults = () => {
-    const base = getBaseTemplateData();
-    setTemplateData(JSON.parse(JSON.stringify(base)));
+    setTemplateData(JSON.parse(JSON.stringify(DEFAULT_TEMPLATE_DATA)));
     toast.success('모든 템플릿이 기본값으로 초기화되었습니다.');
   };
 
@@ -360,95 +261,26 @@ export default function App() {
 
   const handleSave = async () => {
     if (!templateRef.current) return;
-
     try {
       toast.loading('이미지를 저장하고 있습니다...');
-      
       const dataUrl = await toPng(templateRef.current, {
         quality: 1,
         pixelRatio: 2,
         cacheBust: true,
       });
-
-      // Save to server
-      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-3dc5a6da/save-image`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${effectiveAccessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          imageData: dataUrl,
-          metadata: {
-            template: selectedTemplate,
-            ...formData,
-            createdAt: new Date().toISOString(),
-          }
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save image');
-      }
-
-      const result = await response.json();
-      console.log('Image saved:', result);
-
+      const metadata = {
+        template: selectedTemplate,
+        ...formData,
+        createdAt: new Date().toISOString(),
+      };
+      await imageApi.saveImage(dataUrl, metadata, effectiveAccessToken);
       toast.dismiss();
       toast.success('이미지가 서버에 저장되었습니다!');
     } catch (error) {
       console.error('Save failed:', error);
       toast.dismiss();
-      toast.error(`저장에 실패했습니다: ${error.message}`);
+      toast.error(`저장에 실패했습니다: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  };
-
-  const handleSaveContent = () => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.SAVED_CONTENTS);
-      const savedContents = saved ? JSON.parse(saved) : [];
-
-      let title = '';
-      if (selectedTemplate === 'horizontal-card' || selectedTemplate === 'square-layout') {
-        title = (formData as any).headline1 || '제목 없음';
-      } else if (selectedTemplate === 'quad-layout' || selectedTemplate === 'vertical-list-card') {
-        title = (formData as any).headlines?.[0]?.text || '제목 없음';
-      }
-
-      const newContent = {
-        id: `content-${Date.now()}`,
-        templateType: selectedTemplate,
-        data: { ...formData },
-        timestamp: Date.now(),
-        title: title
-      };
-
-      const updatedContents = [newContent, ...savedContents];
-      localStorage.setItem(STORAGE_KEYS.SAVED_CONTENTS, JSON.stringify(updatedContents));
-
-      toast.success('현재 내용이 저장되었습니다!');
-    } catch (error) {
-      console.error('Save content failed:', error);
-      toast.error('내용 저장에 실패했습니다.');
-    }
-  };
-
-  // 🔧 디버그: 현재 설정값 콘솔에 출력
-  const handleLoadContent = (content: any) => {
-    // Switch to the saved template type
-    setSelectedTemplate(content.templateType);
-
-    // Load the saved data
-    setTemplateData(prev => ({
-      ...prev,
-      [content.templateType]: {
-        ...content.data
-      }
-    }));
-
-    // Switch to edit tab
-    setActiveTab('edit');
   };
 
   const renderTemplate = () => {
@@ -580,10 +412,6 @@ export default function App() {
               <RotateCcw className="w-4 h-4" />
               <span className="hidden md:inline">기본값 초기화</span>
             </Button>
-            <Button onClick={handleSaveContent} variant="outline" size="sm" className="hidden sm:flex gap-2 bg-green-50 hover:bg-green-100 text-green-700 border-green-300 flex-shrink-0">
-              <BookmarkPlus className="w-4 h-4" />
-              <span className="hidden md:inline">내용 저장</span>
-            </Button>
             <Button onClick={handleDownload} size="sm" className="gap-2 flex-shrink-0">
               <Download className="w-4 h-4" />
               <span className="hidden md:inline">다운로드</span>
@@ -592,115 +420,26 @@ export default function App() {
               <Save className="w-4 h-4" />
               <span className="hidden md:inline">저장</span>
             </Button>
-            <Button onClick={handleLogout} variant="outline" size="sm" className="hidden sm:flex gap-2 flex-shrink-0">
-              <LogOut className="w-4 h-4" />
-              <span className="hidden md:inline">로그아웃</span>
-            </Button>
           </div>
         </div>
         
         {/* GNB 메뉴 - 데스크톱 */}
         <div className="border-t hidden md:block">
           <nav className="flex overflow-x-auto">
-            <button
-              onClick={() => setActiveTab('template')}
-              className={`flex-1 px-4 md:px-6 py-2 md:py-3 flex items-center justify-center gap-2 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
-                activeTab === 'template'
-                  ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <Layout className="w-4 h-4" />
-              <span className="hidden md:inline">템플릿 선택</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('edit')}
-              className={`flex-1 px-4 md:px-6 py-2 md:py-3 flex items-center justify-center gap-2 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
-                activeTab === 'edit'
-                  ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <Edit className="w-4 h-4" />
-              <span className="hidden md:inline">내용 편집</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('profile')}
-              className={`flex-1 px-4 md:px-6 py-2 md:py-3 flex items-center justify-center gap-2 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
-                activeTab === 'profile'
-                  ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <ImageIcon className="w-4 h-4" />
-              <span className="hidden lg:inline">후보 얼굴 관리</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('background')}
-              className={`flex-1 px-4 md:px-6 py-2 md:py-3 flex items-center justify-center gap-2 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
-                activeTab === 'background'
-                  ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <ImageIconLucide className="w-4 h-4" />
-              <span className="hidden lg:inline">배경 이미지</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('textimage')}
-              className={`flex-1 px-4 md:px-6 py-2 md:py-3 flex items-center justify-center gap-2 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
-                activeTab === 'textimage'
-                  ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <Type className="w-4 h-4" />
-              <span className="hidden lg:inline">텍스트 이미지</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('logo')}
-              className={`flex-1 px-4 md:px-6 py-2 md:py-3 flex items-center justify-center gap-2 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
-                activeTab === 'logo'
-                  ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <Braces className="w-4 h-4" />
-              <span className="hidden lg:inline">로고 이미지</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('copyright')}
-              className={`flex-1 px-4 md:px-6 py-2 md:py-3 flex items-center justify-center gap-2 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
-                activeTab === 'copyright'
-                  ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <FileText className="w-4 h-4" />
-              <span className="hidden lg:inline">하단 문구</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('saved')}
-              className={`flex-1 px-4 md:px-6 py-2 md:py-3 flex items-center justify-center gap-2 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
-                activeTab === 'saved'
-                  ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <FolderOpen className="w-4 h-4" />
-              <span className="hidden lg:inline">저장된 이미지</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('saved-contents')}
-              className={`flex-1 px-4 md:px-6 py-2 md:py-3 flex items-center justify-center gap-2 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
-                activeTab === 'saved-contents'
-                  ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <BookmarkPlus className="w-4 h-4" />
-              <span className="hidden lg:inline">저장된 내용</span>
-            </button>
+            {NAV_TABS.map(({ tab, label, icon: Icon }) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`flex-1 px-4 md:px-6 py-2 md:py-3 flex items-center justify-center gap-2 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
+                  activeTab === tab
+                    ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span className="hidden md:inline">{label}</span>
+              </button>
+            ))}
           </nav>
         </div>
       </header>
@@ -780,22 +519,6 @@ export default function App() {
               </div>
             )}
 
-            {activeTab === 'saved' && (
-              <div>
-                <SavedImagesPanel
-                  onLoadImage={handleLoadImage}
-                  accessToken={effectiveAccessToken}
-                />
-              </div>
-            )}
-
-            {activeTab === 'saved-contents' && (
-              <div>
-                <SavedContentsPanel
-                  onLoadContent={handleLoadContent}
-                />
-              </div>
-            )}
           </div>
         </aside>
 
@@ -839,132 +562,23 @@ export default function App() {
 
           {/* 드로어 GNB 메뉴 */}
           <nav className="border-b divide-y">
-            <button
-              onClick={() => {
-                setActiveTab('template');
-                setDrawerOpen(false);
-              }}
-              className={`w-full px-4 py-3 flex items-center gap-3 text-sm font-medium transition-colors ${
-                activeTab === 'template'
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <Layout className="w-4 h-4" />
-              템플릿 선택
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab('edit');
-                setDrawerOpen(false);
-              }}
-              className={`w-full px-4 py-3 flex items-center gap-3 text-sm font-medium transition-colors ${
-                activeTab === 'edit'
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <Edit className="w-4 h-4" />
-              내용 편집
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab('profile');
-                setDrawerOpen(false);
-              }}
-              className={`w-full px-4 py-3 flex items-center gap-3 text-sm font-medium transition-colors ${
-                activeTab === 'profile'
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <ImageIcon className="w-4 h-4" />
-              후보 얼굴 관리
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab('background');
-                setDrawerOpen(false);
-              }}
-              className={`w-full px-4 py-3 flex items-center gap-3 text-sm font-medium transition-colors ${
-                activeTab === 'background'
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <ImageIconLucide className="w-4 h-4" />
-              배경 이미지 관리
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab('textimage');
-                setDrawerOpen(false);
-              }}
-              className={`w-full px-4 py-3 flex items-center gap-3 text-sm font-medium transition-colors ${
-                activeTab === 'textimage'
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <Type className="w-4 h-4" />
-              텍스트 이미지 관리
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab('logo');
-                setDrawerOpen(false);
-              }}
-              className={`w-full px-4 py-3 flex items-center gap-3 text-sm font-medium transition-colors ${
-                activeTab === 'logo'
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <Braces className="w-4 h-4" />
-              로고 이미지 관리
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab('copyright');
-                setDrawerOpen(false);
-              }}
-              className={`w-full px-4 py-3 flex items-center gap-3 text-sm font-medium transition-colors ${
-                activeTab === 'copyright'
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <FileText className="w-4 h-4" />
-              하단 문구
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab('saved');
-                setDrawerOpen(false);
-              }}
-              className={`w-full px-4 py-3 flex items-center gap-3 text-sm font-medium transition-colors ${
-                activeTab === 'saved'
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <FolderOpen className="w-4 h-4" />
-              저장된 이미지
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab('saved-contents');
-                setDrawerOpen(false);
-              }}
-              className={`w-full px-4 py-3 flex items-center gap-3 text-sm font-medium transition-colors ${
-                activeTab === 'saved-contents'
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <BookmarkPlus className="w-4 h-4" />
-              저장된 내용
-            </button>
+            {NAV_TABS.map(({ tab, label, icon: Icon }) => (
+              <button
+                key={tab}
+                onClick={() => {
+                  setActiveTab(tab);
+                  setDrawerOpen(false);
+                }}
+                className={`w-full px-4 py-3 flex items-center gap-3 text-sm font-medium transition-colors ${
+                  activeTab === tab
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {label}
+              </button>
+            ))}
           </nav>
 
           {/* 드로어 콘텐츠 */}
@@ -1039,22 +653,6 @@ export default function App() {
               </div>
             )}
 
-            {activeTab === 'saved' && (
-              <div>
-                <SavedImagesPanel
-                  onLoadImage={handleLoadImage}
-                  accessToken={effectiveAccessToken}
-                />
-              </div>
-            )}
-
-            {activeTab === 'saved-contents' && (
-              <div>
-                <SavedContentsPanel
-                  onLoadContent={handleLoadContent}
-                />
-              </div>
-            )}
           </div>
         </SheetContent>
       </Sheet>

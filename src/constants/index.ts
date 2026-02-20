@@ -6,6 +6,7 @@ export const API_ENDPOINTS = {
   LOGIN: '/login',
   VERIFY_SESSION: '/verify-session',
   SAVE_IMAGE: '/save-image',
+  IMAGES: '/images',
   PROFILE_IMAGES: '/profile-images',
   BACKGROUND_IMAGES: '/background-images',
   TEXT_IMAGES: '/text-images',
@@ -40,6 +41,15 @@ export const STORAGE_KEYS = {
 export const TEMPLATE_DIMENSIONS = {
   width: 720,
   height: 1200,
+};
+
+// 템플릿 타입 → 좌측 패널 표시용 한글 이름
+export const TEMPLATE_LABELS: Record<string, string> = {
+  'horizontal-card': '가로형 카드',
+  'quad-layout': '4분할 레이아웃',
+  'vertical-list-card': '세로 리스트 카드',
+  'vertical-card': '세로형 카드',
+  'square-layout': '사각 2단 레이아웃',
 };
 
 // Available Icons

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Trash2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
-import { projectId, publicAnonKey } from '@/config/supabase';
+import { imageApi } from '@/utils/api';
 
 interface SavedImage {
   id: string;
@@ -29,22 +29,7 @@ export function SavedImagesPanel({ onLoadImage, accessToken }: SavedImagesPanelP
   const fetchImages = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-3dc5a6da/images`,
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Failed to fetch images. Status:', response.status, 'Response:', errorText);
-        throw new Error(`Failed to fetch images: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = await imageApi.getImages(accessToken);
       setImages(data.images || []);
     } catch (error) {
       console.error('Error fetching images:', error);
@@ -56,24 +41,10 @@ export function SavedImagesPanel({ onLoadImage, accessToken }: SavedImagesPanelP
 
   const handleDelete = async (id: string) => {
     if (!confirm('정말 삭제하시겠습니까?')) return;
-
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-3dc5a6da/images/${id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to delete image');
-      }
-
+      await imageApi.deleteImage(id, accessToken);
       toast.success('이미지가 삭제되었습니다.');
-      fetchImages(); // Refresh list
+      fetchImages();
     } catch (error) {
       console.error('Error deleting image:', error);
       toast.error('이미지 삭제에 실패했습니다.');

@@ -7,27 +7,27 @@ import { Lock } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface LoginPageProps {
-  onLogin: (email: string, password: string) => Promise<boolean>;
+  onLogin: (id: string, password: string) => Promise<boolean>;
 }
 
 export function LoginPage({ onLogin }: LoginPageProps) {
-  const [email, setEmail] = useState('');
+  const [id, setId] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
-      toast.error('이메일과 비밀번호를 입력해주세요.');
+    if (!id || !password) {
+      toast.error('아이디와 비밀번호를 입력해주세요.');
       return;
     }
 
     setIsLoading(true);
     try {
-      const success = await onLogin(email, password);
+      const success = await onLogin(id, password);
       if (!success) {
-        toast.error('로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.');
+        toast.error('로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -54,13 +54,13 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">이메일</Label>
+              <Label htmlFor="id">아이디</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="example@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="id"
+                type="text"
+                placeholder="아이디 (예: 21t)"
+                value={id}
+                onChange={(e) => setId(e.target.value)}
                 disabled={isLoading}
                 className="h-11"
               />
@@ -84,6 +84,31 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             >
               <Lock className="w-4 h-4" />
               {isLoading ? '로그인 중...' : '로그인'}
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-11 gap-2 mt-2"
+              disabled={isLoading}
+              onClick={async () => {
+                setId('21t');
+                setPassword('21t');
+                setIsLoading(true);
+                try {
+                  const success = await onLogin('21t', '21t');
+                  if (!success) {
+                    toast.error('로그인 실패. Supabase에서 사용자(21t@local / 21t)를 생성했는지 확인하세요.');
+                  }
+                } catch (error) {
+                  console.error('Login error:', error);
+                  toast.error('로그인 중 오류가 발생했습니다.');
+                } finally {
+                  setIsLoading(false);
+                }
+              }}
+            >
+              빠른 로그인 (21t)
             </Button>
           </form>
 

@@ -44,6 +44,19 @@ git push -u origin main
    - `logo-images` (Public)
    - `cardnews-images` (Public)
 
+#### 로그인 사용자 생성 (필수)
+앱은 **아이디**만 입력받고, 내부적으로 `아이디@local`로 Supabase에 매핑됩니다.
+
+빠른 로그인(21t)을 쓰려면 Supabase에 사용자를 생성하세요:
+
+1. 좌측 메뉴 **Authentication** → **Users** 클릭
+2. **Add user** → **Create new user** 선택
+3. **Email**: `21t@local` 입력 (아이디 + @local)
+4. **Password**: `21t` 입력
+5. **Auto Confirm User** 체크 후 생성
+
+이렇게 만들면 앱에서 "빠른 로그인 (21t)" 버튼으로 로그인할 수 있습니다.
+
 #### API Keys 확인
 1. 좌측 메뉴 **Settings** → **API** 클릭
 2. 다음 정보 복사 (Vercel에서 사용):

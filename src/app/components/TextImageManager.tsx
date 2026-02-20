@@ -2,7 +2,8 @@ import { useEffect, useState, useRef } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Trash2, Upload, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { projectId } from '@/config/supabase';
+import { imageApi } from '@/utils/api';
+import { UPLOAD_LIMITS } from '@/constants';
 
 interface TextImage {
   id: string;
@@ -30,20 +31,7 @@ export function TextImageManager({ selectedImageUrl, onSelectImage, accessToken 
   const fetchImages = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-3dc5a6da/text-images`,
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch text images');
-      }
-
-      const data = await response.json();
+      const data = await imageApi.getTextImages(accessToken);
       setImages(data.images || []);
     } catch (error) {
       console.error('Error fetching text images:', error);
@@ -63,8 +51,7 @@ export function TextImageManager({ selectedImageUrl, onSelectImage, accessToken 
       return;
     }
 
-    // Validate file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > UPLOAD_LIMITS.maxFileSize) {
       toast.error('파일 크기는 5MB 이하여야 합니다.');
       return;
     }
@@ -78,35 +65,9 @@ export function TextImageManager({ selectedImageUrl, onSelectImage, accessToken 
         try {
           const imageData = e.target?.result as string;
 
-          console.log('Uploading text image:', { name: file.name, size: imageData.length });
-
-          const response = await fetch(
-            `https://${projectId}.supabase.co/functions/v1/make-server-3dc5a6da/text-images`,
-            {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                imageData,
-                name: file.name,
-              }),
-            }
-          );
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            console.error('Upload failed:', errorData);
-            throw new Error(errorData.error || 'Failed to upload text image');
-          }
-
-          const result = await response.json();
-          console.log('Upload successful:', result);
-
+          await imageApi.uploadTextImage(imageData, file.name, accessToken);
           toast.success('텍스트 이미지가 업로드되었습니다!');
-          fetchImages(); // Refresh list
-          setUploading(false);
+          fetchImages();
         } catch (error) {
           console.error('Error uploading text image:', error);
           toast.error(`텍스트 이미지 업로드에 실패했습니다: ${error.message}`);
@@ -135,25 +96,10 @@ export function TextImageManager({ selectedImageUrl, onSelectImage, accessToken 
 
   const handleDelete = async (id: string) => {
     if (!confirm('정말 삭제하시겠습니까?')) return;
-
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-3dc5a6da/text-images/${id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to delete text image');
-      }
-
+      await imageApi.deleteTextImage(id, accessToken);
       toast.success('텍스트 이미지가 삭제되었습니다.');
-      
-      fetchImages(); // Refresh list
+      fetchImages();
     } catch (error) {
       console.error('Error deleting text image:', error);
       toast.error('텍스트 이미지 삭제에 실패했습니다.');

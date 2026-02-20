@@ -2,7 +2,8 @@ import { useEffect, useState, useRef } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Trash2, Upload, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { projectId } from '@/config/supabase';
+import { imageApi } from '@/utils/api';
+import { UPLOAD_LIMITS } from '@/constants';
 import { ImageCropModal } from './ImageCropModal';
 
 interface BackgroundImage {
@@ -33,20 +34,7 @@ export function BackgroundImageManager({ selectedImageUrl, onSelectImage, access
   const fetchImages = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-3dc5a6da/background-images`,
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch background images');
-      }
-
-      const data = await response.json();
+      const data = await imageApi.getBackgroundImages(accessToken);
       setImages(data.images || []);
     } catch (error) {
       console.error('Error fetching background images:', error);
@@ -66,8 +54,7 @@ export function BackgroundImageManager({ selectedImageUrl, onSelectImage, access
       return;
     }
 
-    // Validate file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > UPLOAD_LIMITS.maxFileSize) {
       toast.error('파일 크기는 5MB 이하여야 합니다.');
       return;
     }
@@ -96,30 +83,17 @@ export function BackgroundImageManager({ selectedImageUrl, onSelectImage, access
       // Convert blob to base64
       const reader = new FileReader();
       reader.onload = async (e) => {
-        const imageData = e.target?.result as string;
-
-        const response = await fetch(
-          `https://${projectId}.supabase.co/functions/v1/make-server-3dc5a6da/background-images`,
-          {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${accessToken}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              imageData,
-              name: fileName,
-            }),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error('Failed to upload image');
+        try {
+          const imageData = e.target?.result as string;
+          await imageApi.uploadBackgroundImage(imageData, fileName, accessToken);
+          toast.success('배경 이미지가 업로드되었습니다!');
+          fetchImages();
+        } catch (err) {
+          console.error('Error uploading image:', err);
+          toast.error('이미지 업로드에 실패했습니다.');
+        } finally {
+          setUploading(false);
         }
-
-        toast.success('배경 이미지가 업로드되었습니다!');
-        fetchImages();
-        setUploading(false);
       };
 
       reader.readAsDataURL(croppedBlob);
@@ -138,22 +112,8 @@ export function BackgroundImageManager({ selectedImageUrl, onSelectImage, access
 
   const handleDelete = async (id: string) => {
     if (!confirm('정말 삭제하시겠습니까?')) return;
-
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-3dc5a6da/background-images/${id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to delete image');
-      }
-
+      await imageApi.deleteBackgroundImage(id, accessToken);
       toast.success('배경 이미지가 삭제되었습니다.');
       fetchImages();
     } catch (error) {

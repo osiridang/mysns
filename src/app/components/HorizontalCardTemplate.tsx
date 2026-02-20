@@ -124,11 +124,11 @@ export const HorizontalCardTemplate = forwardRef<HTMLDivElement, HorizontalCardT
                 return (
                   <div
                     key={index}
-                    className="flex items-center gap-3 py-2"
+                    className="flex flex-col items-start gap-2 py-2"
                     style={{
                       background: 'linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.06) 100%)',
                       borderRadius: '8px',
-                      padding: '8px 12px',
+                      padding: '10px 12px',
                       border: '1px solid rgba(255,255,255,0.2)',
                     }}
                   >
@@ -141,7 +141,7 @@ export const HorizontalCardTemplate = forwardRef<HTMLDivElement, HorizontalCardT
                         <Icon size={18} className="text-white" strokeWidth={2.5} />
                       )}
                     </div>
-                    <span className="text-blue-100 font-medium" style={{ fontSize: '1rem' }}>
+                    <span className="text-blue-100 font-medium" style={{ fontSize: '1.4rem', letterSpacing: '-0.03em' }}>
                       {item}
                     </span>
                   </div>

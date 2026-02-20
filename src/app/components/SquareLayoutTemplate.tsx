@@ -68,7 +68,12 @@ export const SquareLayoutTemplate = forwardRef<HTMLDivElement, SquareLayoutTempl
           </h2>
           <p
             className="leading-relaxed"
-            style={{ fontSize: '1.3rem', whiteSpace: 'pre-line', color: '#ffffff' }}
+            style={{
+              fontSize: '1.3rem',
+              whiteSpace: 'pre-line',
+              color: '#ffffff',
+              letterSpacing: '-0.02em',
+            }}
           >
             {bodyText || '본문 내용을 입력하세요.'}
           </p>
@@ -89,8 +94,12 @@ export const SquareLayoutTemplate = forwardRef<HTMLDivElement, SquareLayoutTempl
               />
               {image1Caption && image1Caption.trim() && (
                 <span
-                  className="absolute bottom-2 right-2 px-2 py-1 text-white text-xs leading-tight rounded max-w-[85%] truncate"
-                  style={{ background: 'rgba(0,0,0,0.85)', fontFamily: 'inherit' }}
+                  className="absolute bottom-2 right-2 inline-block px-2 py-1.5 text-xs leading-tight rounded font-medium text-white max-w-[85%] break-words whitespace-normal"
+                  style={{
+                    background: 'rgba(0,0,0,0.9)',
+                    fontFamily: 'inherit',
+                    textShadow: '0 1px 2px rgba(0,0,0,0.8)',
+                  }}
                 >
                   {image1Caption}
                 </span>
@@ -107,8 +116,12 @@ export const SquareLayoutTemplate = forwardRef<HTMLDivElement, SquareLayoutTempl
               />
               {image2Caption && image2Caption.trim() && (
                 <span
-                  className="absolute bottom-2 right-2 px-2 py-1 text-white text-xs leading-tight rounded max-w-[85%] truncate"
-                  style={{ background: 'rgba(0,0,0,0.85)', fontFamily: 'inherit' }}
+                  className="absolute bottom-2 right-2 inline-block px-2 py-1.5 text-xs leading-tight rounded font-medium text-white max-w-[85%] break-words whitespace-normal"
+                  style={{
+                    background: 'rgba(0,0,0,0.9)',
+                    fontFamily: 'inherit',
+                    textShadow: '0 1px 2px rgba(0,0,0,0.8)',
+                  }}
                 >
                   {image2Caption}
                 </span>

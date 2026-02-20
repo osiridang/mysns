@@ -42,6 +42,7 @@ lerna-debug.log*
 
 # Supabase
 .supabase/
+supabase/.temp/
 
 # Claude
 .claude/

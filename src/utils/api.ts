@@ -55,8 +55,8 @@ export const apiClient = {
 };
 
 export const authApi = {
-  login: (email: string, password: string) =>
-    apiClient.post(API_ENDPOINTS.LOGIN, { email, password }),
+  login: (id: string, password: string) =>
+    apiClient.post(API_ENDPOINTS.LOGIN, { id, password }),
 
   verifySession: (accessToken: string) =>
     apiClient.post(API_ENDPOINTS.VERIFY_SESSION, {}, accessToken),
@@ -66,9 +66,45 @@ export const imageApi = {
   saveImage: (imageData: string, metadata: any, accessToken: string) =>
     apiClient.post(API_ENDPOINTS.SAVE_IMAGE, { imageData, metadata }, accessToken),
 
+  getImages: (accessToken: string) =>
+    apiClient.get(API_ENDPOINTS.IMAGES, accessToken),
+
+  deleteImage: (imageId: string, accessToken: string) =>
+    apiClient.delete(`${API_ENDPOINTS.IMAGES}/${imageId}`, accessToken),
+
   getProfileImages: (accessToken: string) =>
     apiClient.get(API_ENDPOINTS.PROFILE_IMAGES, accessToken),
 
+  uploadProfileImage: (imageData: string, name: string, accessToken: string) =>
+    apiClient.post(API_ENDPOINTS.PROFILE_IMAGES, { imageData, name }, accessToken),
+
   deleteProfileImage: (imageId: string, accessToken: string) =>
     apiClient.delete(`${API_ENDPOINTS.PROFILE_IMAGES}/${imageId}`, accessToken),
+
+  getBackgroundImages: (accessToken: string) =>
+    apiClient.get(API_ENDPOINTS.BACKGROUND_IMAGES, accessToken),
+
+  uploadBackgroundImage: (imageData: string, name: string, accessToken: string) =>
+    apiClient.post(API_ENDPOINTS.BACKGROUND_IMAGES, { imageData, name }, accessToken),
+
+  deleteBackgroundImage: (imageId: string, accessToken: string) =>
+    apiClient.delete(`${API_ENDPOINTS.BACKGROUND_IMAGES}/${imageId}`, accessToken),
+
+  getTextImages: (accessToken: string) =>
+    apiClient.get(API_ENDPOINTS.TEXT_IMAGES, accessToken),
+
+  uploadTextImage: (imageData: string, name: string, accessToken: string) =>
+    apiClient.post(API_ENDPOINTS.TEXT_IMAGES, { imageData, name }, accessToken),
+
+  deleteTextImage: (imageId: string, accessToken: string) =>
+    apiClient.delete(`${API_ENDPOINTS.TEXT_IMAGES}/${imageId}`, accessToken),
+
+  getLogoImages: (accessToken: string) =>
+    apiClient.get(API_ENDPOINTS.LOGO_IMAGES, accessToken),
+
+  uploadLogoImage: (imageData: string, name: string, accessToken: string) =>
+    apiClient.post(API_ENDPOINTS.LOGO_IMAGES, { imageData, name }, accessToken),
+
+  deleteLogoImage: (imageId: string, accessToken: string) =>
+    apiClient.delete(`${API_ENDPOINTS.LOGO_IMAGES}/${imageId}`, accessToken),
 };

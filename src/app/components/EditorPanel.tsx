@@ -22,7 +22,7 @@ import {
   VerticalCardData,
   SquareLayoutData,
 } from '@/types';
-import { AVAILABLE_ICONS } from '@/constants';
+import { AVAILABLE_ICONS, TEMPLATE_LABELS } from '@/constants';
 import { imageApi } from '@/utils/api';
 
 interface EditorPanelProps {
@@ -119,8 +119,14 @@ export function EditorPanel({ templateType, formData, onFormChange }: EditorPane
   };
 
 
+  const templateLabel = TEMPLATE_LABELS[templateType] ?? templateType;
+
   return (
     <Card className="p-6 space-y-6">
+      <div className="border-b pb-4 mb-2">
+        <p className="text-xs text-gray-500 mb-1">현재 템플릿</p>
+        <p className="font-semibold text-gray-900">{templateLabel}</p>
+      </div>
       <div>
         <h3 className="font-semibold text-lg mb-4">디자인 편집</h3>
       </div>

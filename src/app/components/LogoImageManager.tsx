@@ -2,7 +2,8 @@ import { useEffect, useState, useRef } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Trash2, Upload, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { projectId } from '@/config/supabase';
+import { imageApi } from '@/utils/api';
+import { UPLOAD_LIMITS } from '@/constants';
 import LOGO_blue from '@/assets/LOGO_blue.png';
 import logo_flag_blue from '@/assets/logo_flag_blue.png';
 import logo_flag from '@/assets/logo_flag.png';
@@ -40,20 +41,7 @@ export function LogoImageManager({ selectedImageUrl, onSelectImage, accessToken 
   const fetchImages = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-3dc5a6da/logo-images`,
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch logo images');
-      }
-
-      const data = await response.json();
+      const data = await imageApi.getLogoImages(accessToken);
       setImages([...DEFAULT_LOGO_IMAGES, ...(data.images || [])]);
     } catch (error) {
       console.error('Error fetching logo images:', error);
@@ -74,8 +62,7 @@ export function LogoImageManager({ selectedImageUrl, onSelectImage, accessToken 
       return;
     }
 
-    // Validate file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > UPLOAD_LIMITS.maxFileSize) {
       toast.error('파일 크기는 5MB 이하여야 합니다.');
       return;
     }
@@ -88,25 +75,7 @@ export function LogoImageManager({ selectedImageUrl, onSelectImage, accessToken 
       const imageData = e.target?.result as string;
 
       try {
-        const response = await fetch(
-          `https://${projectId}.supabase.co/functions/v1/make-server-3dc5a6da/logo-images`,
-          {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${accessToken}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              imageData,
-              name: file.name,
-            }),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error('Failed to upload image');
-        }
-
+        await imageApi.uploadLogoImage(imageData, file.name, accessToken);
         toast.success('로고 이미지가 업로드되었습니다!');
         fetchImages();
       } catch (error) {
@@ -126,22 +95,8 @@ export function LogoImageManager({ selectedImageUrl, onSelectImage, accessToken 
 
   const handleDelete = async (id: string) => {
     if (!confirm('정말 삭제하시겠습니까?')) return;
-
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-3dc5a6da/logo-images/${id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to delete image');
-      }
-
+      await imageApi.deleteLogoImage(id, accessToken);
       toast.success('로고 이미지가 삭제되었습니다.');
       fetchImages();
     } catch (error) {

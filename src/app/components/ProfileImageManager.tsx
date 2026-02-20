@@ -2,7 +2,8 @@ import { useEffect, useState, useRef } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Trash2, Upload, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { projectId } from '@/config/supabase';
+import { imageApi } from '@/utils/api';
+import { UPLOAD_LIMITS } from '@/constants';
 import { ImageCropModal } from './ImageCropModal';
 
 // 로컬 assets 이미지 import
@@ -69,25 +70,10 @@ export function ProfileImageManager({ selectedImageUrl, onSelectImage, accessTok
   const fetchImages = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-3dc5a6da/profile-images`,
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch profile images');
-      }
-
-      const data = await response.json();
-      // 기본 이미지 + Supabase 이미지 합치기
+      const data = await imageApi.getProfileImages(accessToken);
       setImages([...DEFAULT_PROFILE_IMAGES, ...(data.images || [])]);
     } catch (error) {
       console.error('Error fetching profile images:', error);
-      // 에러 발생해도 기본 이미지는 표시
       setImages(DEFAULT_PROFILE_IMAGES);
     } finally {
       setLoading(false);
@@ -104,8 +90,7 @@ export function ProfileImageManager({ selectedImageUrl, onSelectImage, accessTok
       return;
     }
 
-    // Validate file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > UPLOAD_LIMITS.maxFileSize) {
       toast.error('파일 크기는 5MB 이하여야 합니다.');
       return;
     }
@@ -129,41 +114,23 @@ export function ProfileImageManager({ selectedImageUrl, onSelectImage, accessTok
   const handleCropComplete = async (croppedBlob: Blob) => {
     setUploading(true);
     setCropModalOpen(false);
-
     try {
-      // Convert blob to base64
       const reader = new FileReader();
       reader.onload = async (e) => {
-        const imageData = e.target?.result as string;
-
-        const response = await fetch(
-          `https://${projectId}.supabase.co/functions/v1/make-server-3dc5a6da/profile-images`,
-          {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${accessToken}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              imageData,
-              name: fileName,
-            }),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error('Failed to upload image');
+        try {
+          const imageData = e.target?.result as string;
+          await imageApi.uploadProfileImage(imageData, fileName, accessToken);
+          toast.success('프로필 이미지가 업로드되었습니다!');
+          fetchImages();
+        } catch (err) {
+          console.error('Error uploading image:', err);
+          toast.error('이미지 업로드에 실패했습니다.');
+        } finally {
+          setUploading(false);
         }
-
-        toast.success('프로필 이미지가 업로드되었습니다!');
-        fetchImages();
-        setUploading(false);
       };
-
       reader.readAsDataURL(croppedBlob);
     } catch (error) {
-      console.error('Error uploading image:', error);
-      toast.error('이미지 업로드에 실패했습니다.');
       setUploading(false);
     }
   };
@@ -176,22 +143,8 @@ export function ProfileImageManager({ selectedImageUrl, onSelectImage, accessTok
 
   const handleDelete = async (id: string) => {
     if (!confirm('정말 삭제하시겠습니까?')) return;
-
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-3dc5a6da/profile-images/${id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to delete image');
-      }
-
+      await imageApi.deleteProfileImage(id, accessToken);
       toast.success('프로필 이미지가 삭제되었습니다.');
       fetchImages();
     } catch (error) {

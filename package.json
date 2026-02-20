@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "dev": "vite"
+    "dev": "vite",
+    "supabase:deploy": "npx supabase link --project-ref taritsiyhmoumleuxwlh && npx supabase db push && npx supabase functions deploy make-server-3dc5a6da"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",
