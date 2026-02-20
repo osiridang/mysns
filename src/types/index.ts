@@ -1,4 +1,4 @@
-export type TemplateType = 'horizontal-card' | 'quad-layout' | 'vertical-list-card' | 'vertical-card';
+export type TemplateType = 'horizontal-card' | 'quad-layout' | 'vertical-list-card' | 'vertical-card' | 'square-layout';
 
 export interface Headline {
   text: string;
@@ -9,7 +9,8 @@ export interface HorizontalCardData {
   headline1: string;
   headline2: string;
   subheadline: string;
-  bodyText: string;
+  items: string[];
+  iconNames: string[];
   bgColor: string;
   imageUrl: string;
   backgroundImageUrl: string;
@@ -56,11 +57,27 @@ export interface VerticalCardData {
   copyrightUrl: string;
 }
 
+export interface SquareLayoutData {
+  headline1: string;
+  headline2: string;
+  headline1Color?: string;
+  headline2Color?: string;
+  bodyText: string;
+  image1: string;
+  image2: string;
+  image1Caption?: string;
+  image2Caption?: string;
+  bgColor: string;
+  logoUrl: string;
+  copyrightUrl: string;
+}
+
 export type TemplateData = {
   'horizontal-card': HorizontalCardData;
   'quad-layout': QuadLayoutData;
   'vertical-list-card': VerticalListCardData;
   'vertical-card': VerticalCardData;
+  'square-layout': SquareLayoutData;
 };
 
 export interface ProfileImage {
@@ -74,7 +91,7 @@ export interface ProfileImage {
 export interface SavedContent {
   id: string;
   templateType: TemplateType;
-  data: HorizontalCardData | QuadLayoutData | VerticalListCardData | VerticalCardData;
+  data: HorizontalCardData | QuadLayoutData | VerticalListCardData | VerticalCardData | SquareLayoutData;
   timestamp: number;
   title: string;
 }

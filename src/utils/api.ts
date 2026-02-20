@@ -1,4 +1,4 @@
-import { projectId } from '/utils/supabase/info';
+import { projectId } from '@/config/supabase';
 import { API_BASE_URL, API_ENDPOINTS } from '@/constants';
 
 const getBaseUrl = () => API_BASE_URL(projectId);

@@ -49,10 +49,10 @@ export const VerticalCardTemplate = forwardRef<HTMLDivElement, VerticalCardTempl
         <div className="absolute top-0 left-0 right-0 px-10 pt-16 pb-10">
           <div className="space-y-4">
             <div className="w-20 h-1 bg-white/60" />
-            <h2 className="text-white font-black leading-tight" style={{ fontSize: '3.5rem', textShadow: '0 4px 20px rgba(0,0,0,0.5)', letterSpacing: '-0.02em', fontFamily: 'GmarketSansBold, sans-serif' }}>
+            <h2 className="text-white font-extrabold leading-tight" style={{ fontSize: '3.5rem', textShadow: '0 4px 20px rgba(0,0,0,0.5)', letterSpacing: '-0.02em', fontFamily: 'GmarketSansBold, sans-serif' }}>
               {headline1 || '핵심 슬로건'}
             </h2>
-            <h2 className="text-white font-black leading-tight" style={{ fontSize: '3.5rem', textShadow: '0 4px 20px rgba(0,0,0,0.5)', letterSpacing: '-0.02em', marginTop: '-1.5rem', fontFamily: 'GmarketSansBold, sans-serif' }}>
+            <h2 className="text-white font-extrabold leading-tight" style={{ fontSize: '3.5rem', textShadow: '0 4px 20px rgba(0,0,0,0.5)', letterSpacing: '-0.02em', marginTop: '-1.5rem', fontFamily: 'GmarketSansBold, sans-serif' }}>
               {headline2}
             </h2>
             <p className="text-blue-100 font-medium" style={{ fontSize: '2.2rem' }}>
@@ -119,13 +119,13 @@ export const VerticalCardTemplate = forwardRef<HTMLDivElement, VerticalCardTempl
           ))}
         </div>
 
-        {/* 하단 카피라이트 이미지 */}
-        {copyrightUrl && (
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20">
+        {/* 하단 카피라이트 이미지 - 너비 100%, 높이 자동, 하단 여백 없음 */}
+        {typeof copyrightUrl === 'string' && copyrightUrl.trim() !== '' && (
+          <div className="absolute bottom-0 left-0 right-0 z-20">
             <ImageWithFallback
               src={copyrightUrl}
               alt="Copyright"
-              className="h-8 w-auto object-contain opacity-90"
+              className="w-full h-auto object-contain object-center opacity-90"
             />
           </div>
         )}

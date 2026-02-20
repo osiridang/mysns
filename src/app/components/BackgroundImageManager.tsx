@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Trash2, Upload, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { projectId } from '../../../utils/supabase/info';
+import { projectId } from '@/config/supabase';
 import { ImageCropModal } from './ImageCropModal';
 
 interface BackgroundImage {
@@ -193,14 +193,14 @@ export function BackgroundImageManager({ selectedImageUrl, onSelectImage, access
             배경 이미지가 없을 때 사용됩니다
           </p>
           <div className="flex gap-3">
-            {['#1e40af', '#0c4a6e', '#1e3a8a', '#312e81', '#4c1d95'].map((color) => (
+            {['#2A48A0', '#004BA4', '#00246E', '#582695', '#005D55'].map((color) => (
               <button
                 key={color}
                 className="w-10 h-10 rounded-full border-2 transition-all"
                 style={{
                   backgroundColor: color,
                   borderColor: bgColor === color ? '#fff' : color,
-                  boxShadow: bgColor === color ? '0 0 0 2px #1e40af' : 'none'
+                  boxShadow: bgColor === color ? '0 0 0 2px #2A48A0' : 'none'
                 }}
                 onClick={() => onColorChange(color)}
               />

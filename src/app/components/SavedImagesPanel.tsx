@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Trash2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { projectId, publicAnonKey } from '@/config/supabase';
 
 interface SavedImage {
   id: string;

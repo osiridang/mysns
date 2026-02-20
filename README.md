@@ -78,6 +78,10 @@
 # 의존성 설치
 npm install
 
+# Supabase API 키 설정 (필수)
+cp .env.example .env.local
+# .env.local에 VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY 입력 (Supabase 대시보드 → Settings → API)
+
 # 개발 서버 실행
 npm run dev
 ```

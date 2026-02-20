@@ -28,6 +28,7 @@ export const DEFAULT_IMAGES = {
 // Local Storage Keys
 export const STORAGE_KEYS = {
   TEMPLATE_DATA: 'mysns-template-data',
+  USER_DEFAULT_TEMPLATE_DATA: 'mysns-user-default-template-data',
   SELECTED_TEMPLATE: 'mysns-selected-template',
   APP_TITLE: 'mysns-app-title',
   APP_SUBTITLE: 'mysns-app-subtitle',

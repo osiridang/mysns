@@ -7,25 +7,27 @@ import { ProfileImageManager } from '@/app/components/ProfileImageManager';
 import { BackgroundImageManager } from '@/app/components/BackgroundImageManager';
 import { TextImageManager } from '@/app/components/TextImageManager';
 import { LogoImageManager } from '@/app/components/LogoImageManager';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { CopyrightImageManager } from '@/app/components/CopyrightImageManager';
+import { projectId, publicAnonKey } from '@/config/supabase';
 import { Toaster, toast } from 'sonner';
 import { HorizontalCardTemplate } from '@/app/components/HorizontalCardTemplate';
 import { QuadLayoutTemplate } from '@/app/components/QuadLayoutTemplate';
 import { VerticalListCardTemplate } from '@/app/components/VerticalListCardTemplate';
 import { VerticalCardTemplate } from '@/app/components/VerticalCardTemplate';
+import { SquareLayoutTemplate } from '@/app/components/SquareLayoutTemplate';
 import { Button } from '@/app/components/ui/button';
 import { Sheet, SheetContent } from '@/app/components/ui/sheet';
-import { Download, Share2, Save, Layout, Edit, ImageIcon, FolderOpen, Type, LogOut, Image as ImageIconLucide, Braces, BookmarkPlus, Menu, X } from 'lucide-react';
+import { Download, Save, Layout, Edit, ImageIcon, FolderOpen, Type, LogOut, Image as ImageIconLucide, Braces, BookmarkPlus, Menu, X, FileText, RotateCcw, Star } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { LoginPage } from '@/app/components/LoginPage';
 import { TemplateType, TemplateData } from '@/types';
-import { DEFAULT_IMAGES, STORAGE_KEYS } from '@/constants';
+import { STORAGE_KEYS } from '@/constants';
+import { DEFAULT_TEMPLATE_DATA } from '@/data/defaultTemplate';
 import { authApi, imageApi } from '@/utils/api';
 
-// 🚀 개발 모드: true로 설정하면 로그인 없이 바로 사용 가능
 const DEV_MODE = true;
 
-type MenuTab = 'template' | 'edit' | 'profile' | 'background' | 'textimage' | 'logo' | 'saved' | 'saved-contents';
+type MenuTab = 'template' | 'edit' | 'profile' | 'background' | 'textimage' | 'logo' | 'copyright' | 'saved' | 'saved-contents';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -33,96 +35,52 @@ export default function App() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // 🚀 개발 모드일 때는 publicAnonKey 사용 (유효한 토큰)
   const effectiveAccessToken = DEV_MODE ? publicAnonKey : accessToken;
 
-  // 기본 템플릿 데이터
-  const DEFAULT_TEMPLATE_DATA: TemplateData = {
-    'horizontal-card': {
-      headline1: '미래는 이미',
-      headline2: '우리 안에 있습니다',
-      subheadline: '전북특별자치도지사 후보',
-      bodyText: '전북의 미래를 위한 새로운 비전을 제시합니다.',
-      bgColor: '#1e40af',
-      imageUrl: DEFAULT_IMAGES.profile,
-      backgroundImageUrl: '',
-      textImageUrls: [DEFAULT_IMAGES.label] as string[],
-      logoUrl: DEFAULT_IMAGES.logo,
-      copyrightUrl: DEFAULT_IMAGES.copyright,
-    },
-    'quad-layout': {
-      headlines: [
-        { text: '가장 강력한 전북', color: '#FFFFFF' },
-        { text: '이원택과 더불어!', color: '#01FE05' }
-      ],
-      bgColor: '#1e40af',
-      imageUrl: DEFAULT_IMAGES.profile,
-      backgroundImageUrl: '',
-      textImageUrls: [DEFAULT_IMAGES.label] as string[],
-      logoUrl: DEFAULT_IMAGES.logo,
-      copyrightUrl: DEFAULT_IMAGES.copyright,
-      items: [
-        '탄소 제로의 심장, 새만금 국제에너지도시',
-        '스마트 농생명, 미래 양보의 핵심',
-        'K컬쳐 글로벌 허브',
-        '지강 발전, 지역 도약 모델 창출'
-      ],
-      itemDetails: [
-        ['해상풍력 에너지 선도', '그린수소 생산기지'],
-        ['푸드테크 혁신 클러스터', '스마트팜 확대'],
-        ['한류 콘텐츠 제작 허브', 'K-Pop 공연장 건립'],
-        ['균형발전 특별법 제정', '지역 일자리 창출']
-      ],
-      iconNames: ['Zap', 'Sprout', 'Globe', 'TrendingUp']
-    },
-    'vertical-list-card': {
-      headlines: [
-        { text: '가장 강력한 전북', color: '#FFFFFF' },
-        { text: '이원택과 더불어!', color: '#01FE05' }
-      ],
-      bgColor: '#1e40af',
-      imageUrl: DEFAULT_IMAGES.profile,
-      backgroundImageUrl: '',
-      textImageUrls: [DEFAULT_IMAGES.label] as string[],
-      logoUrl: DEFAULT_IMAGES.logo,
-      copyrightUrl: DEFAULT_IMAGES.copyright,
-      items: [
-        '탄소 제로의 심장, 새만금 국제에너지도시',
-        '스마트 농생명, 미래 양보의 핵심',
-        'K컬쳐 글로벌 허브',
-        '지강 발전, 지역 도약 모델 창출'
-      ],
-      iconNames: ['Zap', 'Sprout', 'Globe', 'TrendingUp']
-    },
-    'vertical-card': {
-      headline1: '미래는 이미',
-      headline2: '우리 안에 있습니다',
-      subheadline: '전북특별자치도지사 후보',
-      bodyTexts: ['정책 1', '정책 2', '정책 3'],
-      bgColor: '#1e40af',
-      imageUrl: DEFAULT_IMAGES.profile,
-      backgroundImageUrl: '',
-      textImageUrls: [DEFAULT_IMAGES.label] as string[],
-      logoUrl: DEFAULT_IMAGES.logo,
-      copyrightUrl: DEFAULT_IMAGES.copyright,
+  // 사용자 지정 기본값(있으면) 또는 앱 기본값 반환
+  const getBaseTemplateData = (): TemplateData => {
+    try {
+      const userDefault = localStorage.getItem(STORAGE_KEYS.USER_DEFAULT_TEMPLATE_DATA);
+      if (userDefault) {
+        const parsed = JSON.parse(userDefault) as TemplateData;
+        return { ...DEFAULT_TEMPLATE_DATA, ...parsed };
+      }
+    } catch (e) {
+      console.error('Failed to parse user default template data:', e);
     }
+    return DEFAULT_TEMPLATE_DATA;
   };
 
-  // localStorage에서 저장된 데이터 불러오기
+  // localStorage에서 저장된 데이터 불러오기 (템플릿별로 기본값과 병합해 누락 필드 보정)
   const loadSavedData = (): TemplateData => {
     try {
+      const base = getBaseTemplateData();
       const saved = localStorage.getItem(STORAGE_KEYS.TEMPLATE_DATA);
       if (saved) {
-        const parsedData = JSON.parse(saved);
-        return {
-          ...DEFAULT_TEMPLATE_DATA,
-          ...parsedData
-        };
+        const parsedData = JSON.parse(saved) as Partial<TemplateData>;
+        const result = { ...base };
+        (Object.keys(result) as TemplateType[]).forEach((key) => {
+          if (parsedData[key] && typeof parsedData[key] === 'object') {
+            const merged = { ...result[key], ...parsedData[key] } as TemplateData[TemplateType];
+            // 1번 템플릿: 예전 bodyText → items 마이그레이션
+            if (key === 'horizontal-card') {
+              const h = merged as any;
+              if (h.bodyText && (!h.items || h.items.length === 0)) {
+                h.items = [h.bodyText];
+                h.iconNames = ['Zap', 'Sprout', 'Globe', 'TrendingUp'];
+              }
+              delete h.bodyText;
+            }
+            result[key] = merged;
+          }
+        });
+        return result;
       }
+      return base;
     } catch (error) {
       console.error('Failed to load saved data:', error);
     }
-    return DEFAULT_TEMPLATE_DATA;
+    return getBaseTemplateData();
   };
 
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>(() => {
@@ -144,8 +102,8 @@ export default function App() {
   // 각 템플릿별로 독립적인 데이터 관리
   const [templateData, setTemplateData] = useState(loadSavedData());
   
-  // 현재 선택된 템플릿의 데이터
-  const formData = templateData[selectedTemplate];
+  // 현재 선택된 템플릿의 데이터 (탭 이동 시 undefined 방지)
+  const formData = templateData[selectedTemplate] ?? DEFAULT_TEMPLATE_DATA[selectedTemplate];
 
   const templateRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -317,6 +275,34 @@ export default function App() {
     }));
   };
 
+  const handleResetToDefaults = () => {
+    const base = getBaseTemplateData();
+    setTemplateData(JSON.parse(JSON.stringify(base)));
+    toast.success('모든 템플릿이 기본값으로 초기화되었습니다.');
+  };
+
+  /** 현재 설정(본문, 썸네일, 라벨 등)을 기본값으로 저장 → 이후 '기본값 초기화' 시 이 값으로 복원 */
+  const handleSaveAsDefault = () => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.USER_DEFAULT_TEMPLATE_DATA, JSON.stringify(templateData));
+      toast.success('현재 설정이 기본값으로 저장되었습니다. 앞으로 기본값 초기화 시 이 내용이 적용됩니다.');
+    } catch (error) {
+      console.error('Failed to save as default:', error);
+      toast.error('기본값 저장에 실패했습니다.');
+    }
+  };
+
+  /** 하단 문구(카피라이트)는 모든 템플릿에 동일 적용 */
+  const handleCopyrightChange = (url: string) => {
+    setTemplateData(prev => {
+      const next = { ...prev };
+      (Object.keys(next) as TemplateType[]).forEach((key) => {
+        next[key] = { ...next[key], copyrightUrl: url };
+      });
+      return next;
+    });
+  };
+
   const handleLoadImage = (metadata: any) => {
     // Load template type
     if (metadata.template) {
@@ -327,21 +313,22 @@ export default function App() {
     setTemplateData(prev => ({
       ...prev,
       [metadata.template]: {
-        headline1: metadata.headline1 || '',
-        headline2: metadata.headline2 || '',
-        subheadline: metadata.subheadline || '',
-        contactInfo: metadata.contactInfo || '',
-        bodyText: metadata.bodyText || '',
-        bodyTexts: metadata.bodyTexts || [],
-        bgColor: metadata.bgColor || '#1e40af',
-        imageUrl: metadata.imageUrl || '',
-        backgroundImageUrl: metadata.backgroundImageUrl || '',
-        textImageUrls: metadata.textImageUrls || [],
-        logoUrl: metadata.logoUrl || '',
-        items: metadata.items || [],
-        itemDetails: metadata.itemDetails || [],
-        iconNames: metadata.iconNames || []
-      }
+        ...prev[metadata.template as TemplateType],
+        headline1: metadata.headline1 ?? prev[metadata.template]?.headline1 ?? '',
+        headline2: metadata.headline2 ?? prev[metadata.template]?.headline2 ?? '',
+        subheadline: metadata.subheadline ?? prev[metadata.template]?.subheadline ?? '',
+        contactInfo: metadata.contactInfo ?? '',
+        bodyTexts: metadata.bodyTexts ?? prev[metadata.template]?.bodyTexts ?? [],
+        bgColor: metadata.bgColor ?? prev[metadata.template]?.bgColor ?? '#2A48A0',
+        imageUrl: metadata.imageUrl ?? prev[metadata.template]?.imageUrl ?? '',
+        backgroundImageUrl: metadata.backgroundImageUrl ?? prev[metadata.template]?.backgroundImageUrl ?? '',
+        textImageUrls: metadata.textImageUrls ?? prev[metadata.template]?.textImageUrls ?? [],
+        logoUrl: metadata.logoUrl ?? prev[metadata.template]?.logoUrl ?? '',
+        items: metadata.items ?? (metadata.bodyText ? [metadata.bodyText] : prev[metadata.template]?.items ?? []),
+        itemDetails: metadata.itemDetails ?? prev[metadata.template]?.itemDetails ?? [],
+        iconNames: metadata.iconNames ?? prev[metadata.template]?.iconNames ?? ['Zap', 'Sprout', 'Globe', 'TrendingUp'],
+        copyrightUrl: metadata.copyrightUrl ?? prev[metadata.template]?.copyrightUrl ?? ''
+      } as TemplateData[TemplateType]
     }));
   };
 
@@ -368,35 +355,6 @@ export default function App() {
       console.error('Download failed:', error);
       toast.dismiss();
       toast.error('다운로드에 실패했습니다. 다시 시도해주세요.');
-    }
-  };
-
-  const handleShare = async () => {
-    if (!templateRef.current) return;
-
-    try {
-      const dataUrl = await toPng(templateRef.current, {
-        quality: 1,
-        pixelRatio: 2,
-        cacheBust: true,
-      });
-
-      const blob = await (await fetch(dataUrl)).blob();
-      const file = new File([blob], `${selectedTemplate}.png`, { type: 'image/png' });
-
-      if (navigator.share && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: '카드뉴스',
-          text: '전북특별자치도지사 후보 이원택'
-        });
-        toast.success('공유되었습니다!');
-      } else {
-        toast.info('이 브라우저는 공유 기능을 지원하지 않습니다. 다운로드를 이용해주세요.');
-      }
-    } catch (error) {
-      console.error('Share failed:', error);
-      toast.error('공유에 실패했습니다.');
     }
   };
 
@@ -452,7 +410,7 @@ export default function App() {
       const savedContents = saved ? JSON.parse(saved) : [];
 
       let title = '';
-      if (selectedTemplate === 'horizontal-card') {
+      if (selectedTemplate === 'horizontal-card' || selectedTemplate === 'square-layout') {
         title = (formData as any).headline1 || '제목 없음';
       } else if (selectedTemplate === 'quad-layout' || selectedTemplate === 'vertical-list-card') {
         title = (formData as any).headlines?.[0]?.text || '제목 없음';
@@ -477,13 +435,6 @@ export default function App() {
   };
 
   // 🔧 디버그: 현재 설정값 콘솔에 출력
-  const handleShowCurrentValues = () => {
-    console.log('=== 현재 설정된 모든 값 ===');
-    console.log('selectedTemplate:', selectedTemplate);
-    console.log('templateData:', JSON.stringify(templateData, null, 2));
-    toast.success('콘솔(F12)을 확인하세요!');
-  };
-
   const handleLoadContent = (content: any) => {
     // Switch to the saved template type
     setSelectedTemplate(content.templateType);
@@ -506,7 +457,7 @@ export default function App() {
     const backgroundImageUrl = formData.backgroundImageUrl;
     const textImageUrls = formData.textImageUrls;
     const logoUrl = formData.logoUrl;
-    const copyrightUrl = formData.copyrightUrl;
+    const copyrightUrl = formData.copyrightUrl && String(formData.copyrightUrl).trim() ? formData.copyrightUrl : '';
     
     switch (selectedTemplate) {
       case 'horizontal-card':
@@ -516,7 +467,8 @@ export default function App() {
             headline1={formData.headline1}
             headline2={formData.headline2}
             subheadline={formData.subheadline}
-            bodyText={formData.bodyText}
+            items={formData.items}
+            iconNames={formData.iconNames}
             bgColor={formData.bgColor}
             imageUrl={finalImageUrl}
             backgroundImageUrl={backgroundImageUrl}
@@ -556,6 +508,24 @@ export default function App() {
             textImageUrls={textImageUrls}
             logoUrl={logoUrl}
             iconNames={formData.iconNames}
+            copyrightUrl={copyrightUrl}
+          />
+        );
+      case 'square-layout':
+        return (
+          <SquareLayoutTemplate
+            ref={templateRef}
+            headline1={formData.headline1}
+            headline2={formData.headline2}
+            headline1Color={formData.headline1Color}
+            headline2Color={formData.headline2Color}
+            bodyText={formData.bodyText}
+            image1={formData.image1}
+            image2={formData.image2}
+            image1Caption={formData.image1Caption}
+            image2Caption={formData.image2Caption}
+            bgColor={formData.bgColor}
+            logoUrl={formData.logoUrl}
             copyrightUrl={copyrightUrl}
           />
         );
@@ -602,17 +572,17 @@ export default function App() {
             </div>
           </div>
           <div className="flex gap-1 md:gap-2 overflow-x-auto">
-            <Button onClick={handleShowCurrentValues} variant="outline" size="sm" className="hidden sm:flex gap-2 bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-300 flex-shrink-0">
-              <Braces className="w-4 h-4" />
-              <span className="hidden md:inline">현재값 확인</span>
+            <Button onClick={handleSaveAsDefault} variant="outline" size="sm" className="hidden sm:flex gap-2 text-blue-700 border-blue-300 hover:bg-blue-50 flex-shrink-0">
+              <Star className="w-4 h-4" />
+              <span className="hidden md:inline">현재 값을 기본값으로</span>
+            </Button>
+            <Button onClick={handleResetToDefaults} variant="outline" size="sm" className="hidden sm:flex gap-2 text-amber-700 border-amber-300 hover:bg-amber-50 flex-shrink-0">
+              <RotateCcw className="w-4 h-4" />
+              <span className="hidden md:inline">기본값 초기화</span>
             </Button>
             <Button onClick={handleSaveContent} variant="outline" size="sm" className="hidden sm:flex gap-2 bg-green-50 hover:bg-green-100 text-green-700 border-green-300 flex-shrink-0">
               <BookmarkPlus className="w-4 h-4" />
               <span className="hidden md:inline">내용 저장</span>
-            </Button>
-            <Button onClick={handleShare} variant="outline" size="sm" className="gap-2 flex-shrink-0">
-              <Share2 className="w-4 h-4" />
-              <span className="hidden md:inline">공유</span>
             </Button>
             <Button onClick={handleDownload} size="sm" className="gap-2 flex-shrink-0">
               <Download className="w-4 h-4" />
@@ -697,6 +667,17 @@ export default function App() {
             >
               <Braces className="w-4 h-4" />
               <span className="hidden lg:inline">로고 이미지</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('copyright')}
+              className={`flex-1 px-4 md:px-6 py-2 md:py-3 flex items-center justify-center gap-2 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
+                activeTab === 'copyright'
+                  ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <FileText className="w-4 h-4" />
+              <span className="hidden lg:inline">하단 문구</span>
             </button>
             <button
               onClick={() => setActiveTab('saved')}
@@ -786,6 +767,15 @@ export default function App() {
                   selectedImageUrl={formData.logoUrl}
                   onSelectImage={(url) => handleFormChange('logoUrl', url)}
                   accessToken={effectiveAccessToken}
+                />
+              </div>
+            )}
+
+            {activeTab === 'copyright' && (
+              <div>
+                <CopyrightImageManager
+                  selectedImageUrl={formData.copyrightUrl ?? ''}
+                  onSelectImage={handleCopyrightChange}
                 />
               </div>
             )}
@@ -935,6 +925,20 @@ export default function App() {
             </button>
             <button
               onClick={() => {
+                setActiveTab('copyright');
+                setDrawerOpen(false);
+              }}
+              className={`w-full px-4 py-3 flex items-center gap-3 text-sm font-medium transition-colors ${
+                activeTab === 'copyright'
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <FileText className="w-4 h-4" />
+              하단 문구
+            </button>
+            <button
+              onClick={() => {
                 setActiveTab('saved');
                 setDrawerOpen(false);
               }}
@@ -1022,6 +1026,15 @@ export default function App() {
                   selectedImageUrl={formData.logoUrl}
                   onSelectImage={(url) => handleFormChange('logoUrl', url)}
                   accessToken={effectiveAccessToken}
+                />
+              </div>
+            )}
+
+            {activeTab === 'copyright' && (
+              <div>
+                <CopyrightImageManager
+                  selectedImageUrl={formData.copyrightUrl ?? ''}
+                  onSelectImage={handleCopyrightChange}
                 />
               </div>
             )}

@@ -50,11 +50,15 @@ export function SavedContentsPanel({ onLoadContent }: SavedContentsPanelProps) {
   const getTemplateDisplayName = (type: string) => {
     switch (type) {
       case 'horizontal-card':
-        return '가로형 카드뉴스';
+        return '1. 2분할 레이아웃';
       case 'quad-layout':
-        return '4분할 레이아웃';
+        return '2. 4분할 레이아웃';
       case 'vertical-list-card':
-        return '세로 리스트 카드';
+        return '3. 세로 리스트 카드';
+      case 'vertical-card':
+        return '5. 세로 카드';
+      case 'square-layout':
+        return '4. 정사각형 레이아웃';
       default:
         return type;
     }

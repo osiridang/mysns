@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Trash2, Upload, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { projectId } from '../../../utils/supabase/info';
+import { projectId } from '@/config/supabase';
 
 interface TextImage {
   id: string;

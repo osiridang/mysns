@@ -1,8 +1,8 @@
 import { Card } from "@/app/components/ui/card";
 import { cn } from "@/app/components/ui/utils";
-import { Square, Grid2x2, List } from 'lucide-react';
+import { Square, Grid2x2, List, LayoutGrid } from 'lucide-react';
 
-export type TemplateType = 'horizontal-card' | 'quad-layout' | 'vertical-list-card';
+export type TemplateType = 'horizontal-card' | 'quad-layout' | 'vertical-list-card' | 'square-layout';
 
 interface TemplateSelectorProps {
   selectedTemplate: TemplateType;
@@ -10,27 +10,10 @@ interface TemplateSelectorProps {
 }
 
 const templates = [
-  {
-    id: 'horizontal-card' as TemplateType,
-    name: '가로형 카드뉴스',
-    description: '720 x 720px',
-    aspectRatio: '1/1',
-    icon: Square
-  },
-  {
-    id: 'quad-layout' as TemplateType,
-    name: '4분할 레이아웃',
-    description: '720 x 1200px',
-    aspectRatio: '1/1',
-    icon: Grid2x2
-  },
-  {
-    id: 'vertical-list-card' as TemplateType,
-    name: '세로 리스트 카드',
-    description: '720 x 1200px',
-    aspectRatio: '1/1',
-    icon: List
-  }
+  { id: 'horizontal-card' as TemplateType, number: 1, name: '2분할 레이아웃', description: '720 x 720px', aspectRatio: '1/1', icon: Square },
+  { id: 'quad-layout' as TemplateType, number: 2, name: '4분할 레이아웃', description: '720 x 1200px', aspectRatio: '1/1', icon: Grid2x2 },
+  { id: 'vertical-list-card' as TemplateType, number: 3, name: '세로 리스트 카드', description: '720 x 1200px', aspectRatio: '1/1', icon: List },
+  { id: 'square-layout' as TemplateType, number: 4, name: '정사각형 레이아웃', description: '720 x 720px', aspectRatio: '1/1', icon: LayoutGrid },
 ];
 
 export function TemplateSelector({ selectedTemplate, onTemplateChange }: TemplateSelectorProps) {
@@ -52,7 +35,7 @@ export function TemplateSelector({ selectedTemplate, onTemplateChange }: Templat
                 <Icon className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-sm mb-0.5">{template.name}</h3>
+                <h3 className="font-semibold text-sm mb-0.5">{template.number}. {template.name}</h3>
                 <p className="text-xs text-gray-500">{template.description}</p>
               </div>
             </div>

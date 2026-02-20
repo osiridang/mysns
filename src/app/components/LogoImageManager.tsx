@@ -2,7 +2,12 @@ import { useEffect, useState, useRef } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Trash2, Upload, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { projectId } from '../../../utils/supabase/info';
+import { projectId } from '@/config/supabase';
+import LOGO_blue from '@/assets/LOGO_blue.png';
+import logo_flag_blue from '@/assets/logo_flag_blue.png';
+import logo_flag from '@/assets/logo_flag.png';
+import logo_sircle from '@/assets/logo_sircle.png';
+import LOGO_white from '@/assets/LOGO_white.png';
 
 interface LogoImage {
   id: string;
@@ -18,8 +23,16 @@ interface LogoImageManagerProps {
   accessToken: string;
 }
 
+const DEFAULT_LOGO_IMAGES: LogoImage[] = [
+  { id: 'default-logo-white', filename: 'LOGO_white.png', name: 'LOGO 흰색', url: LOGO_white, createdAt: new Date().toISOString() },
+  { id: 'default-logo-blue', filename: 'LOGO_blue.png', name: 'LOGO 블루', url: LOGO_blue, createdAt: new Date().toISOString() },
+  { id: 'default-logo-flag', filename: 'logo_flag.png', name: '로고 플래그', url: logo_flag, createdAt: new Date().toISOString() },
+  { id: 'default-logo-flag-blue', filename: 'logo_flag_blue.png', name: '로고 플래그 블루', url: logo_flag_blue, createdAt: new Date().toISOString() },
+  { id: 'default-logo-circle', filename: 'logo_sircle.png', name: '로고 서클', url: logo_sircle, createdAt: new Date().toISOString() },
+];
+
 export function LogoImageManager({ selectedImageUrl, onSelectImage, accessToken }: LogoImageManagerProps) {
-  const [images, setImages] = useState<LogoImage[]>([]);
+  const [images, setImages] = useState<LogoImage[]>(DEFAULT_LOGO_IMAGES);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -41,9 +54,10 @@ export function LogoImageManager({ selectedImageUrl, onSelectImage, accessToken 
       }
 
       const data = await response.json();
-      setImages(data.images || []);
+      setImages([...DEFAULT_LOGO_IMAGES, ...(data.images || [])]);
     } catch (error) {
       console.error('Error fetching logo images:', error);
+      setImages(DEFAULT_LOGO_IMAGES);
       toast.error('로고 이미지를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
@@ -214,16 +228,25 @@ export function LogoImageManager({ selectedImageUrl, onSelectImage, accessToken 
                   </div>
                 )}
 
-                {/* Delete Button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(image.id);
-                  }}
-                  className="absolute bottom-8 right-2 bg-red-500 text-white rounded p-1.5 hover:bg-red-600 transition-colors"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
+                {/* Delete Button - 기본 이미지는 제외 */}
+                {!image.id.startsWith('default-') && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(image.id);
+                    }}
+                    className="absolute bottom-8 right-2 bg-red-500 text-white rounded p-1.5 hover:bg-red-600 transition-colors"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                )}
+
+                {/* 기본 이미지 배지 */}
+                {image.id.startsWith('default-') && (
+                  <div className="absolute top-2 right-2 bg-green-600 text-white text-xs px-2 py-1 rounded-full font-medium">
+                    기본
+                  </div>
+                )}
 
                 {/* Name */}
                 <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white px-2 py-1">

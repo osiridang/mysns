@@ -2,14 +2,13 @@ import { useEffect, useState, useRef } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Trash2, Upload, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { projectId } from '../../../utils/supabase/info';
+import { projectId } from '@/config/supabase';
 import { ImageCropModal } from './ImageCropModal';
 
 // 로컬 assets 이미지 import
 import 가디건이원택 from '../../assets/가디건이원택.png';
 import 강의하는이원택 from '../../assets/강의하는이원택.png';
 import 웃고있는이원택 from '../../assets/웃고있는이원택.png';
-import 이원택_정장 from '../../assets/이원택_정장.png';
 import 주먹불끈이원택 from '../../assets/주먹불끈이원택.png';
 
 interface ProfileImage {
@@ -37,13 +36,6 @@ const DEFAULT_PROFILE_IMAGES: ProfileImage[] = [
   },
   {
     id: 'default-2',
-    filename: '이원택_정장.png',
-    name: '이원택_정장',
-    url: 이원택_정장,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'default-3',
     filename: '웃고있는이원택.png',
     name: '웃고있는이원택',
     url: 웃고있는이원택,

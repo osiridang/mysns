@@ -95,9 +95,10 @@ export const QuadLayoutTemplate = forwardRef<HTMLDivElement, QuadLayoutTemplateP
             {headlines.slice(0, 2).map((headline, index) => (
               <h2
                 key={index}
-                className="text-white font-black leading-tight whitespace-pre-line text-center"
+                className="text-white leading-tight whitespace-pre-line text-center"
                 style={{
                   fontSize: index === 0 ? '3.75rem' : '4.75rem',
+                  fontWeight: 700,
                   textShadow: '0 4px 20px rgba(0,0,0,0.5)',
                   letterSpacing: '-0.02em',
                   marginTop: index === 0 ? 0 : '-1.5rem',
@@ -150,9 +151,10 @@ export const QuadLayoutTemplate = forwardRef<HTMLDivElement, QuadLayoutTemplateP
             }}
           >
             <h2
-              className="text-white font-black leading-tight whitespace-pre-line"
+              className="text-white leading-tight whitespace-pre-line"
               style={{
                 fontSize: '2.5rem',
+                fontWeight: 700,
                 textShadow: '0 4px 20px rgba(0,0,0,0.7)',
                 letterSpacing: '-0.02em',
                 fontFamily: 'GmarketSansBold, sans-serif',
@@ -177,9 +179,10 @@ export const QuadLayoutTemplate = forwardRef<HTMLDivElement, QuadLayoutTemplateP
             }}
           >
             <h2
-              className="text-white font-black leading-tight whitespace-pre-line"
+              className="text-white leading-tight whitespace-pre-line"
               style={{
                 fontSize: '2.5rem',
+                fontWeight: 700,
                 textShadow: '0 4px 20px rgba(0,0,0,0.7)',
                 letterSpacing: '-0.02em',
                 fontFamily: 'GmarketSansBold, sans-serif',
@@ -210,7 +213,7 @@ export const QuadLayoutTemplate = forwardRef<HTMLDivElement, QuadLayoutTemplateP
                   {/* 아이콘 또는 숫자 */}
                   <div className="mb-2.5 flex items-center justify-center w-11 h-11 rounded-full bg-white/20">
                     {iconName === 'Number' ? (
-                      <span className="text-white font-black text-xl" style={{ fontFamily: 'GmarketSansBold, sans-serif' }}>
+                      <span className="text-white font-extrabold text-xl" style={{ fontFamily: 'GmarketSansBold, sans-serif' }}>
                         {index + 1}
                       </span>
                     ) : (
@@ -267,13 +270,13 @@ export const QuadLayoutTemplate = forwardRef<HTMLDivElement, QuadLayoutTemplateP
           {/* 텍스트 이미지 삭제됨 */}
         </div>
 
-        {/* 하단 카피라이트 이미지 */}
-        {copyrightUrl && (
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20">
+        {/* 하단 카피라이트 이미지 - 너비 100%, 높이 자동, 하단 여백 없음 */}
+        {typeof copyrightUrl === 'string' && copyrightUrl.trim() !== '' && (
+          <div className="absolute bottom-0 left-0 right-0 z-20">
             <ImageWithFallback
               src={copyrightUrl}
               alt="Copyright"
-              className="h-8 w-auto object-contain opacity-90"
+              className="w-full h-auto object-contain object-center opacity-90"
             />
           </div>
         )}

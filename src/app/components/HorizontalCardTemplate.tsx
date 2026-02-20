@@ -1,12 +1,31 @@
-import { forwardRef } from 'react';
+import { forwardRef, useRef, useEffect } from 'react';
+import { Zap, Sprout, Globe, TrendingUp, Heart, Star, Users, Target, Lightbulb, Award, LucideIcon } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { DEFAULT_IMAGES, TEMPLATE_DIMENSIONS } from '@/constants';
+
+const TITLE_BASE_SIZE = 48;
+const TITLE_MIN_SIZE = 20;
+const TITLE_STEP = 4;
+
+const iconMap: Record<string, LucideIcon> = {
+  Zap,
+  Sprout,
+  Globe,
+  TrendingUp,
+  Heart,
+  Star,
+  Users,
+  Target,
+  Lightbulb,
+  Award,
+};
 
 interface HorizontalCardTemplateProps {
   headline1: string;
   headline2: string;
   subheadline: string;
-  bodyText: string;
+  items?: string[];
+  iconNames?: string[];
   bgColor: string;
   imageUrl?: string;
   backgroundImageUrl?: string;
@@ -16,7 +35,34 @@ interface HorizontalCardTemplateProps {
 }
 
 export const HorizontalCardTemplate = forwardRef<HTMLDivElement, HorizontalCardTemplateProps>(
-  ({ headline1, headline2, subheadline, bodyText, bgColor, imageUrl, backgroundImageUrl, textImageUrls = [], logoUrl, copyrightUrl }, ref) => {
+  ({ headline1, headline2, subheadline, items = [], iconNames = [], bgColor, imageUrl, backgroundImageUrl, textImageUrls = [], logoUrl, copyrightUrl }, ref) => {
+    const title1Ref = useRef<HTMLHeadingElement>(null);
+    const title2Ref = useRef<HTMLHeadingElement>(null);
+
+    const shrinkToFit = (el: HTMLHeadingElement | null, maxLines = 2) => {
+      if (!el) return;
+      let size = TITLE_BASE_SIZE;
+      const lineHeight = 1.2;
+
+      const measure = () => {
+        el.style.fontSize = `${size}px`;
+        const maxHeight = size * lineHeight * maxLines;
+        if (el.scrollHeight > maxHeight + 2 && size > TITLE_MIN_SIZE) {
+          size -= TITLE_STEP;
+          requestAnimationFrame(measure);
+        }
+      };
+      requestAnimationFrame(measure);
+    };
+
+    useEffect(() => {
+      const raf = requestAnimationFrame(() => {
+        shrinkToFit(title1Ref.current);
+        shrinkToFit(title2Ref.current);
+      });
+      return () => cancelAnimationFrame(raf);
+    }, [headline1, headline2]);
+
     return (
       <div
         ref={ref}
@@ -35,22 +81,77 @@ export const HorizontalCardTemplate = forwardRef<HTMLDivElement, HorizontalCardT
         <div className="absolute left-0 top-0 h-full w-[55%] flex flex-col justify-center px-12">
           <div className="space-y-6">
             <div className="w-16 h-1 bg-white/60 mb-4" />
-            <h2 className="text-white font-black leading-tight" style={{ fontSize: '3rem', textShadow: '0 4px 20px rgba(0,0,0,0.5)', letterSpacing: '-0.02em' }}>
+            <h2
+              ref={title1Ref}
+              className="text-white leading-tight"
+              style={{
+                fontFamily: 'GmarketSansBold, sans-serif',
+                fontWeight: 800,
+                fontSize: `${TITLE_BASE_SIZE}px`,
+                textShadow: '0 4px 20px rgba(0,0,0,0.5)',
+                letterSpacing: '-0.02em',
+              }}
+            >
               {headline1 || '정책 제목'}
             </h2>
-            <h2 className="text-white font-black leading-tight" style={{ fontSize: '3rem', marginTop: '-1.5rem', textShadow: '0 4px 20px rgba(0,0,0,0.5)', letterSpacing: '-0.02em' }}>
+            <h2
+              ref={title2Ref}
+              className="text-white leading-tight"
+              style={{
+                fontFamily: 'GmarketSansBold, sans-serif',
+                fontWeight: 800,
+                fontSize: `${TITLE_BASE_SIZE}px`,
+                marginTop: '-0.5em',
+                textShadow: '0 4px 20px rgba(0,0,0,0.5)',
+                letterSpacing: '-0.02em',
+              }}
+            >
               {headline2}
             </h2>
             <p className="text-blue-100 font-medium" style={{ fontSize: '1.5rem' }}>
               {subheadline || '부제목을 입력하세요'}
             </p>
-            <p className="text-blue-200 leading-relaxed" style={{ fontSize: '1.2rem' }}>
-              {bodyText || '본문 내용을 입력하세요. 정책이나 공약에 대한 설명을 간결하게 작성합니다.'}
-            </p>
+            {/* 리스트 항목 (3번 템플릿과 동일 구조) */}
+            <div className="space-y-2">
+              {(items.length > 0 ? items : [
+                '탄소 제로의 심장, 새만금 국제에너지도시',
+                '스마트 농생명, 미래 양보의 핵심',
+                'K컬쳐 글로벌 허브',
+                '지강 발전, 지역 도약 모델 창출',
+              ]).map((item, index) => {
+                const iconName = iconNames[index] || ['Zap', 'Sprout', 'Globe', 'TrendingUp'][index];
+                const Icon = iconMap[iconName] || Zap;
+                return (
+                  <div
+                    key={index}
+                    className="flex items-center gap-3 py-2"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.06) 100%)',
+                      borderRadius: '8px',
+                      padding: '8px 12px',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                    }}
+                  >
+                    <div className="flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-full bg-white/20">
+                      {iconName === 'Number' ? (
+                        <span className="text-white font-extrabold text-sm" style={{ fontFamily: 'GmarketSansBold, sans-serif' }}>
+                          {index + 1}
+                        </span>
+                      ) : (
+                        <Icon size={18} className="text-white" strokeWidth={2.5} />
+                      )}
+                    </div>
+                    <span className="text-blue-100 font-medium" style={{ fontSize: '1rem' }}>
+                      {item}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
 
-        {/* 우측 이미지 영역 */}
+        {/* 우측 이미지 영역 - 후보는 밝게, 왼쪽 뒷배경만 살짝 어둡게 */}
         <div className="absolute right-0 top-0 h-full w-[45%]">
           <div className="w-full h-full relative">
             <ImageWithFallback
@@ -61,7 +162,13 @@ export const HorizontalCardTemplate = forwardRef<HTMLDivElement, HorizontalCardT
                 objectPosition: '70% 20%'
               }}
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-900/30 to-transparent" />
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: 'linear-gradient(to right, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.08) 35%, transparent 55%)'
+              }}
+              aria-hidden
+            />
           </div>
         </div>
 
@@ -84,13 +191,13 @@ export const HorizontalCardTemplate = forwardRef<HTMLDivElement, HorizontalCardT
           </div>
         )}
 
-        {/* 하단 카피라이트 이미지 */}
-        {copyrightUrl && (
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20">
+        {/* 하단 카피라이트 이미지 - 너비 100%, 높이 자동, 하단 여백 없음 */}
+        {typeof copyrightUrl === 'string' && copyrightUrl.trim() !== '' && (
+          <div className="absolute bottom-0 left-0 right-0 z-20">
             <ImageWithFallback
               src={copyrightUrl}
               alt="Copyright"
-              className="h-8 w-auto object-contain opacity-90"
+              className="w-full h-auto object-contain object-center opacity-90"
             />
           </div>
         )}

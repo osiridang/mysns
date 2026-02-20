@@ -1,10 +1,9 @@
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
-import { Textarea } from "@/app/components/ui/textarea";
 import { Card } from "@/app/components/ui/card";
 import { X, Plus } from "lucide-react";
-import { useState, useEffect } from "react";
-import { publicAnonKey } from '/utils/supabase/info';
+import { useState, useEffect, useRef } from "react";
+import { publicAnonKey } from '@/config/supabase';
 import { toast } from 'sonner';
 import { Button } from "@/app/components/ui/button";
 import {
@@ -21,20 +20,24 @@ import {
   QuadLayoutData,
   VerticalListCardData,
   VerticalCardData,
+  SquareLayoutData,
 } from '@/types';
 import { AVAILABLE_ICONS } from '@/constants';
 import { imageApi } from '@/utils/api';
 
 interface EditorPanelProps {
   templateType: TemplateType;
-  formData: HorizontalCardData | QuadLayoutData | VerticalListCardData | VerticalCardData;
+  formData: HorizontalCardData | QuadLayoutData | VerticalListCardData | VerticalCardData | SquareLayoutData;
   onFormChange: (field: string, value: any) => void;
 }
 
 export function EditorPanel({ templateType, formData, onFormChange }: EditorPanelProps) {
   const [profileImages, setProfileImages] = useState<ProfileImage[]>([]);
   const [showProfileGallery, setShowProfileGallery] = useState(false);
+  const [selectingForField, setSelectingForField] = useState<'image1' | 'image2' | 'imageUrl'>('imageUrl');
   const [loading, setLoading] = useState(false);
+  const image1InputRef = useRef<HTMLInputElement>(null);
+  const image2InputRef = useRef<HTMLInputElement>(null);
 
   // Fetch profile images
   useEffect(() => {
@@ -54,22 +57,39 @@ export function EditorPanel({ templateType, formData, onFormChange }: EditorPane
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, field = 'imageUrl') => {
     const file = e.target.files?.[0];
     if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast.error('이미지 파일만 업로드 가능합니다.');
+        e.target.value = '';
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('파일 크기는 5MB 이하여야 합니다.');
+        e.target.value = '';
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
-        onFormChange('imageUrl', reader.result as string);
+        onFormChange(field, reader.result as string);
         toast.success('이미지가 업로드되었습니다!');
       };
       reader.readAsDataURL(file);
     }
+    e.target.value = '';
   };
 
-  const handleProfileSelect = (url: string) => {
-    onFormChange('imageUrl', url);
+  const handleProfileSelect = (url: string, field?: 'image1' | 'image2' | 'imageUrl') => {
+    const target = field ?? selectingForField;
+    onFormChange(target, url);
     setShowProfileGallery(false);
-    toast.success('프로필 이미지가 선택되었습니다!');
+    toast.success('이미지가 선택되었습니다!');
+  };
+
+  const openGalleryFor = (field: 'image1' | 'image2' | 'imageUrl') => {
+    setSelectingForField(field);
+    setShowProfileGallery(true);
   };
 
   const handleClearImage = () => {
@@ -123,7 +143,7 @@ export function EditorPanel({ templateType, formData, onFormChange }: EditorPane
               id="headline2"
               value={formData.headline2 || ''}
               onChange={(e) => onFormChange('headline2', e.target.value)}
-              placeholder="우리 안에 있습니다"
+              placeholder="우리안에 있습니다"
             />
           </div>
           <div className="space-y-2">
@@ -135,16 +155,97 @@ export function EditorPanel({ templateType, formData, onFormChange }: EditorPane
               placeholder="부제목을 입력하세요"
             />
           </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="bodyText">본문</Label>
-            <Textarea
-              id="bodyText"
-              value={formData.bodyText || ''}
-              onChange={(e) => onFormChange('bodyText', e.target.value)}
-              placeholder="본문 내용을 입력하세요"
-              rows={4}
-            />
+
+          {/* 리스트 항목 (3번 템플릿과 동일 구조) */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label>리스트 항목</Label>
+              <Button
+                onClick={() => {
+                  const currentItems = (formData as HorizontalCardData).items || [];
+                  if (currentItems.length < 8) {
+                    onFormChange('items', [...currentItems, '']);
+                    const currentIcons = (formData as HorizontalCardData).iconNames || [];
+                    onFormChange('iconNames', [...currentIcons, 'Zap']);
+                  }
+                }}
+                size="sm"
+                variant="outline"
+                className="gap-1"
+                disabled={((formData as HorizontalCardData).items || []).length >= 8}
+              >
+                <Plus className="w-3 h-3" />
+                항목 추가
+              </Button>
+            </div>
+
+            {((formData as HorizontalCardData).items || []).map((item, index) => (
+              <div key={index} className="p-4 border-2 border-blue-200 rounded-lg bg-blue-50 space-y-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">
+                      {index + 1}
+                    </div>
+                    <span className="text-sm font-semibold text-blue-900">리스트 항목 {index + 1}</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const newItems = ((formData as HorizontalCardData).items || []).filter((_, i) => i !== index);
+                      onFormChange('items', newItems);
+                      const newIcons = ((formData as HorizontalCardData).iconNames || []).filter((_, i) => i !== index);
+                      onFormChange('iconNames', newIcons);
+                    }}
+                    className="text-xs text-red-600 hover:text-red-700 flex items-center gap-1"
+                  >
+                    <X className="w-3 h-3" />
+                    삭제
+                  </button>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-gray-700">항목 제목</Label>
+                  <Input
+                    value={item}
+                    onChange={(e) => {
+                      const newItems = [...((formData as HorizontalCardData).items || [])];
+                      newItems[index] = e.target.value;
+                      onFormChange('items', newItems);
+                    }}
+                    placeholder={`리스트 항목 ${index + 1}`}
+                    className="bg-white"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-gray-700">아이콘 선택</Label>
+                  <Select
+                    value={(formData as HorizontalCardData).iconNames?.[index] || 'Zap'}
+                    onValueChange={(value) => {
+                      const newIconNames = [...((formData as HorizontalCardData).iconNames || ['Zap', 'Sprout', 'Globe', 'TrendingUp'])];
+                      newIconNames[index] = value;
+                      onFormChange('iconNames', newIconNames);
+                    }}
+                  >
+                    <SelectTrigger className="bg-white text-[14px] font-mono">
+                      <SelectValue>
+                        {AVAILABLE_ICONS.find(icon => icon.name === (formData as HorizontalCardData).iconNames?.[index])?.label || '번개'}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="bg-white text-[14px] font-mono">
+                      {AVAILABLE_ICONS.map(icon => (
+                        <SelectItem key={icon.name} value={icon.name}>
+                          {icon.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            ))}
+
+            {(!(formData as HorizontalCardData).items || (formData as HorizontalCardData).items.length === 0) && (
+              <div className="text-center py-4 text-sm text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
+                리스트 항목이 없습니다. &apos;+ 항목 추가&apos; 버튼을 눌러 추가하세요.
+              </div>
+            )}
           </div>
         </>
       )}
@@ -188,7 +289,7 @@ export function EditorPanel({ templateType, formData, onFormChange }: EditorPane
                   </div>
                   <button
                     onClick={() => {
-                      const newHeadlines = formData.headlines.filter((_, i) => i !== index);
+                      const newHeadlines = (formData.headlines || []).filter((_, i) => i !== index);
                       onFormChange('headlines', newHeadlines);
                     }}
                     className="text-xs text-red-600 hover:text-red-700 flex items-center gap-1"
@@ -203,7 +304,7 @@ export function EditorPanel({ templateType, formData, onFormChange }: EditorPane
                   <Input
                     value={headline.text}
                     onChange={(e) => {
-                      const newHeadlines = [...formData.headlines];
+                      const newHeadlines = [...(formData.headlines || [])];
                       newHeadlines[index] = { ...newHeadlines[index], text: e.target.value };
                       onFormChange('headlines', newHeadlines);
                     }}
@@ -219,7 +320,7 @@ export function EditorPanel({ templateType, formData, onFormChange }: EditorPane
                       type="color"
                       value={headline.color}
                       onChange={(e) => {
-                        const newHeadlines = [...formData.headlines];
+                        const newHeadlines = [...(formData.headlines || [])];
                         newHeadlines[index] = { ...newHeadlines[index], color: e.target.value };
                         onFormChange('headlines', newHeadlines);
                       }}
@@ -229,7 +330,7 @@ export function EditorPanel({ templateType, formData, onFormChange }: EditorPane
                       type="text"
                       value={headline.color}
                       onChange={(e) => {
-                        const newHeadlines = [...formData.headlines];
+                        const newHeadlines = [...(formData.headlines || [])];
                         newHeadlines[index] = { ...newHeadlines[index], color: e.target.value };
                         onFormChange('headlines', newHeadlines);
                       }}
@@ -302,11 +403,11 @@ export function EditorPanel({ templateType, formData, onFormChange }: EditorPane
                   >
                     <SelectTrigger className="bg-white text-[14px] font-mono">
                       <SelectValue>
-                        {availableIcons.find(icon => icon.name === formData.iconNames?.[index])?.label || '번개'}
+                        {AVAILABLE_ICONS.find(icon => icon.name === formData.iconNames?.[index])?.label || '번개'}
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent className="bg-white text-[14px] font-mono">
-                      {availableIcons.map(icon => (
+                      {AVAILABLE_ICONS.map(icon => (
                         <SelectItem key={icon.name} value={icon.name}>
                           {icon.label}
                         </SelectItem>
@@ -357,7 +458,7 @@ export function EditorPanel({ templateType, formData, onFormChange }: EditorPane
                   </div>
                   <button
                     onClick={() => {
-                      const newHeadlines = formData.headlines.filter((_, i) => i !== index);
+                      const newHeadlines = (formData.headlines || []).filter((_, i) => i !== index);
                       onFormChange('headlines', newHeadlines);
                     }}
                     className="text-xs text-red-600 hover:text-red-700 flex items-center gap-1"
@@ -372,7 +473,7 @@ export function EditorPanel({ templateType, formData, onFormChange }: EditorPane
                   <Input
                     value={headline.text}
                     onChange={(e) => {
-                      const newHeadlines = [...formData.headlines];
+                      const newHeadlines = [...(formData.headlines || [])];
                       newHeadlines[index] = { ...newHeadlines[index], text: e.target.value };
                       onFormChange('headlines', newHeadlines);
                     }}
@@ -388,7 +489,7 @@ export function EditorPanel({ templateType, formData, onFormChange }: EditorPane
                       type="color"
                       value={headline.color}
                       onChange={(e) => {
-                        const newHeadlines = [...formData.headlines];
+                        const newHeadlines = [...(formData.headlines || [])];
                         newHeadlines[index] = { ...newHeadlines[index], color: e.target.value };
                         onFormChange('headlines', newHeadlines);
                       }}
@@ -398,7 +499,7 @@ export function EditorPanel({ templateType, formData, onFormChange }: EditorPane
                       type="text"
                       value={headline.color}
                       onChange={(e) => {
-                        const newHeadlines = [...formData.headlines];
+                        const newHeadlines = [...(formData.headlines || [])];
                         newHeadlines[index] = { ...newHeadlines[index], color: e.target.value };
                         onFormChange('headlines', newHeadlines);
                       }}
@@ -502,10 +603,151 @@ export function EditorPanel({ templateType, formData, onFormChange }: EditorPane
 
             {(!(formData as VerticalListCardData).items || (formData as VerticalListCardData).items.length === 0) && (
               <div className="text-center py-4 text-sm text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
-                리스트 항목이 없습니다. '+ 항목 추가' 버튼을 눌러 추가하세요.
+                리스트 항목이 없습니다. &apos;+ 항목 추가&apos; 버튼을 눌러 추가하세요.
               </div>
             )}
           </div>
+        </>
+      )}
+
+      {/* 정사각형 레이아웃 전용 */}
+      {templateType === 'square-layout' && (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="headline1">제목1</Label>
+            <Input
+              id="headline1"
+              value={(formData as SquareLayoutData).headline1 || ''}
+              onChange={(e) => onFormChange('headline1', e.target.value)}
+              placeholder="제목1"
+            />
+            <div className="flex gap-2 items-center">
+              <Label className="text-xs text-gray-600 shrink-0">제목1 색상</Label>
+              <input
+                type="color"
+                value={(formData as SquareLayoutData).headline1Color || '#FFFFFF'}
+                onChange={(e) => onFormChange('headline1Color', e.target.value)}
+                className="w-10 h-9 rounded border cursor-pointer"
+              />
+              <Input
+                value={(formData as SquareLayoutData).headline1Color || '#FFFFFF'}
+                onChange={(e) => onFormChange('headline1Color', e.target.value)}
+                placeholder="#FFFFFF"
+                className="flex-1 font-mono text-sm"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="headline2">제목2</Label>
+            <Input
+              id="headline2"
+              value={(formData as SquareLayoutData).headline2 || ''}
+              onChange={(e) => onFormChange('headline2', e.target.value)}
+              placeholder="제목2"
+            />
+            <div className="flex gap-2 items-center">
+              <Label className="text-xs text-gray-600 shrink-0">제목2 색상</Label>
+              <input
+                type="color"
+                value={(formData as SquareLayoutData).headline2Color || '#FFFFFF'}
+                onChange={(e) => onFormChange('headline2Color', e.target.value)}
+                className="w-10 h-9 rounded border cursor-pointer"
+              />
+              <Input
+                value={(formData as SquareLayoutData).headline2Color || '#FFFFFF'}
+                onChange={(e) => onFormChange('headline2Color', e.target.value)}
+                placeholder="#FFFFFF"
+                className="flex-1 font-mono text-sm"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="bodyText">본문 내용</Label>
+            <textarea
+              id="bodyText"
+              value={(formData as SquareLayoutData).bodyText || ''}
+              onChange={(e) => onFormChange('bodyText', e.target.value)}
+              placeholder="본문 내용을 입력하세요"
+              rows={4}
+              className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>사진1</Label>
+            <div className="flex gap-2 flex-wrap">
+              <Input
+                value={(formData as SquareLayoutData).image1 || ''}
+                onChange={(e) => onFormChange('image1', e.target.value)}
+                placeholder="이미지 URL 또는 업로드"
+                className="flex-1 min-w-0"
+              />
+              <input
+                ref={image1InputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => handleImageUpload(e, 'image1')}
+              />
+              <Button type="button" variant="outline" size="sm" onClick={() => image1InputRef.current?.click()}>
+                업로드
+              </Button>
+              <Button type="button" variant="outline" size="sm" onClick={() => openGalleryFor('image1')}>갤러리에서 선택</Button>
+            </div>
+            <Input
+              value={(formData as SquareLayoutData).image1Caption || ''}
+              onChange={(e) => onFormChange('image1Caption', e.target.value)}
+              placeholder="사진1 설명 (우측 하단 라벨)"
+              className="text-sm"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>사진2</Label>
+            <div className="flex gap-2 flex-wrap">
+              <Input
+                value={(formData as SquareLayoutData).image2 || ''}
+                onChange={(e) => onFormChange('image2', e.target.value)}
+                placeholder="이미지 URL 또는 업로드"
+                className="flex-1 min-w-0"
+              />
+              <input
+                ref={image2InputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => handleImageUpload(e, 'image2')}
+              />
+              <Button type="button" variant="outline" size="sm" onClick={() => image2InputRef.current?.click()}>
+                업로드
+              </Button>
+              <Button type="button" variant="outline" size="sm" onClick={() => openGalleryFor('image2')}>갤러리에서 선택</Button>
+            </div>
+            <Input
+              value={(formData as SquareLayoutData).image2Caption || ''}
+              onChange={(e) => onFormChange('image2Caption', e.target.value)}
+              placeholder="사진2 설명 (우측 하단 라벨)"
+              className="text-sm"
+            />
+          </div>
+          {showProfileGallery && (
+            <div className="mt-2 p-2 border rounded-lg space-y-2 max-h-48 overflow-y-auto bg-gray-50">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">프로필 갤러리에서 {selectingForField === 'image1' ? '사진1' : '사진2'} 선택</span>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setShowProfileGallery(false)}>닫기</Button>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {profileImages.map((img) => (
+                  <button
+                    key={img.id}
+                    type="button"
+                    onClick={() => handleProfileSelect(img.url || '')}
+                    className="border rounded overflow-hidden hover:ring-2 ring-blue-500"
+                  >
+                    {img.url ? <img src={img.url} alt={img.name} className="w-full aspect-square object-cover" /> : <span className="text-xs p-2 block">이미지 없음</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </>
       )}
     </Card>

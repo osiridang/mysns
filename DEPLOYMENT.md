@@ -60,16 +60,17 @@ git push -u origin main
 3. GitHub에서 `mysns` 저장소 선택
 4. "Import" 클릭
 
-#### 환경 변수 설정
+#### 환경 변수 설정 (필수)
+API 키는 코드에 포함되지 않으며, 반드시 환경 변수로만 설정합니다.
+
 **Environment Variables** 섹션에서 추가:
 
-```
-Name: VITE_SUPABASE_URL
-Value: https://xxxxx.supabase.co (Supabase Project URL)
+| Name | Value | 비고 |
+|------|--------|------|
+| `VITE_SUPABASE_URL` | `https://xxxxx.supabase.co` | Supabase Project URL |
+| `VITE_SUPABASE_ANON_KEY` | Supabase anon public key | Supabase → Settings → API에서 복사 |
 
-Name: VITE_SUPABASE_ANON_KEY  
-Value: eyJhbGc... (Supabase anon key)
-```
+로컬 개발: `.env.example`을 복사해 `.env.local`을 만들고 위 값을 채운 뒤 사용하세요. `.env.local`은 Git에 커밋하지 마세요.
 
 #### 배포 설정 확인
 - Framework Preset: **Vite**
@@ -178,6 +179,12 @@ git push
 - Project URL이 정확한지 확인
 - Anon key가 올바른지 확인
 - Supabase 프로젝트가 활성화되어 있는지 확인
+
+### Supabase 정상 작동 확인
+1. **로컬**: `.env.local`에 `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` 설정 후 앱 실행
+2. **동작 확인**: 로그인, 후보 얼굴/로고/배경 이미지 불러오기·업로드, 이미지 저장 등 실행
+3. **Vercel**: Project Settings → Environment Variables에 동일 변수 설정 후 재배포
+4. 배포된 사이트에서 로그인 및 이미지 관련 탭이 에러 없이 동작하면 정상
 
 ---
 
