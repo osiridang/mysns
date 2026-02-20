@@ -23,7 +23,8 @@ export async function checkSupabaseConnection(): Promise<{ ok: boolean; message:
 
 export const apiClient = {
   async post(endpoint: string, body: any, accessToken?: string) {
-    const response = await fetch(`${getBaseUrl()}${endpoint}`, {
+    const url = `${getBaseUrl()}${endpoint}`;
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -33,8 +34,15 @@ export const apiClient = {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Request failed' }));
-      throw new Error(error.error || `HTTP ${response.status}`);
+      const text = await response.text();
+      let msg: string;
+      try {
+        const json = JSON.parse(text);
+        msg = json.error || text || `HTTP ${response.status}`;
+      } catch {
+        msg = text || `HTTP ${response.status}`;
+      }
+      throw new Error(msg);
     }
 
     return response.json();

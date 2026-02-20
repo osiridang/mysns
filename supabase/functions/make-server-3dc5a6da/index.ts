@@ -192,8 +192,7 @@ app.get("/make-server-3dc5a6da/health", (c) => {
 
 const APP_DEFAULTS_KEY = "app:defaults";
 
-// 앱 기본값 조회 (다른 브라우저/기기에서도 동일한 값 로드용, 인증 없이 읽기 가능)
-app.get("/make-server-3dc5a6da/app-defaults", async (c) => {
+const appDefaultsGet = async (c: any) => {
   try {
     const data = await kv.get(APP_DEFAULTS_KEY);
     return c.json(data ?? {});
@@ -201,12 +200,10 @@ app.get("/make-server-3dc5a6da/app-defaults", async (c) => {
     console.error("app-defaults get error:", e);
     return c.json({}, 200);
   }
-});
-
-// 앱 기본값 저장 (로그인 없이 저장 가능 → 다시 열어서/새로고침해도 동일한 값 표시)
-app.post("/make-server-3dc5a6da/app-defaults", async (c) => {
+};
+const appDefaultsPost = async (c: any) => {
   try {
-    const body = await c.req.json();
+    const body = await c.req.json().catch(() => ({}));
     const { templateData, appTitle, appSubtitle, selectedTemplate } = body;
     if (!templateData || typeof templateData !== "object") {
       return c.json({ error: "templateData is required" }, 400);
@@ -220,9 +217,16 @@ app.post("/make-server-3dc5a6da/app-defaults", async (c) => {
     return c.json({ success: true });
   } catch (e) {
     console.error("app-defaults set error:", e);
-    return c.json({ error: "Failed to save defaults" }, 500);
+    return c.json({ error: e instanceof Error ? e.message : "Failed to save defaults" }, 500);
   }
-});
+};
+
+// 앱 기본값 조회 (인증 없이 읽기 가능)
+app.get("/make-server-3dc5a6da/app-defaults", appDefaultsGet);
+app.get("/app-defaults", appDefaultsGet);
+// 앱 기본값 저장 (로그인 없이 저장 가능)
+app.post("/make-server-3dc5a6da/app-defaults", appDefaultsPost);
+app.post("/app-defaults", appDefaultsPost);
 
 // Save card news image
 app.post("/make-server-3dc5a6da/save-image", requireAuth, async (c) => {

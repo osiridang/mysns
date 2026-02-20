@@ -15,7 +15,7 @@ import { VerticalCardTemplate } from '@/app/components/VerticalCardTemplate';
 import { SquareLayoutTemplate } from '@/app/components/SquareLayoutTemplate';
 import { Button } from '@/app/components/ui/button';
 import { Sheet, SheetContent } from '@/app/components/ui/sheet';
-import { Download, Save, Menu, X } from 'lucide-react';
+import { Download, Menu, X } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { TemplateType, TemplateData } from '@/types';
 import { STORAGE_KEYS } from '@/constants';
@@ -269,23 +269,6 @@ export default function App() {
     }
   };
 
-  /** 우측 상단 저장: 현재 설정된 값을 서버에 저장. 다시 열거나 새로고침하면 이 내용이 로드됨. */
-  const handleSave = async () => {
-    try {
-      toast.loading('저장 중...');
-      await appDefaultsApi.save(
-        { templateData, appTitle, appSubtitle, selectedTemplate },
-        effectiveAccessToken
-      );
-      toast.dismiss();
-      toast.success('저장했습니다. 다시 열거나 새로고침하면 이 내용으로 보입니다.');
-    } catch (error) {
-      console.error('Save failed:', error);
-      toast.dismiss();
-      toast.error(`저장 실패: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  };
-
   const renderTemplate = () => {
     // Use selected profile image or custom imageUrl
     const finalImageUrl = formData.imageUrl;
@@ -410,10 +393,6 @@ export default function App() {
             <Button onClick={handleDownload} size="sm" className="gap-2 flex-shrink-0">
               <Download className="w-4 h-4" />
               <span className="hidden md:inline">다운로드</span>
-            </Button>
-            <Button onClick={handleSave} variant="outline" size="sm" className="hidden sm:flex gap-2 flex-shrink-0">
-              <Save className="w-4 h-4" />
-              <span className="hidden md:inline">저장</span>
             </Button>
           </div>
         </div>
