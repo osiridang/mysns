@@ -21,7 +21,7 @@ import { toPng } from 'html-to-image';
 import { TemplateType, TemplateData, HorizontalCardData, CopyrightArea, SavedContent } from '@/types';
 import { STORAGE_KEYS } from '@/constants';
 import { DEFAULT_TEMPLATE_DATA, DEFAULT_COPYRIGHT_AREA } from '@/data/defaultTemplate';
-import { appDefaultsApi, checkSupabaseConnection } from '@/utils/api';
+import { appDefaultsApi, checkSupabaseConnection, savedContentsApi } from '@/utils/api';
 import { useTemplateScale } from '@/app/hooks/useTemplateScale';
 import { NAV_TABS, type MenuTab } from '@/app/config/navTabs';
 
@@ -179,7 +179,7 @@ export default function App() {
     }
   }, [appSubtitle]);
 
-  // 🔄 저장된 내용 목록 변경 시 localStorage 반영
+  // 🔄 저장된 내용 목록 변경 시 localStorage에 캐시 (API 실패 시 폴백용)
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEYS.SAVED_CONTENTS, JSON.stringify(savedContents));
@@ -188,20 +188,41 @@ export default function App() {
     }
   }, [savedContents]);
 
-  // 현재 지정된 모든 사항을 스냅샷으로 저장
-  const handleSaveCurrentContent = () => {
+  // Supabase에서 저장된 내용 목록 로드 (성공 시 적용, 실패 시 localStorage 유지)
+  useEffect(() => {
+    let cancelled = false;
+    savedContentsApi.get(effectiveAccessToken)
+      .then((res: any) => {
+        if (cancelled || !res?.contents) return;
+        setSavedContents(res.contents);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  // 현재 지정된 모든 사항을 스냅샷으로 저장 (Supabase 우선, 실패 시 로컬)
+  const handleSaveCurrentContent = async () => {
     const title = window.prompt('저장할 이름을 입력하세요', `저장 ${new Date().toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`)?.trim() || `저장 ${Date.now()}`;
-    const newItem: SavedContent = {
-      id: crypto.randomUUID(),
+    const payload = {
       templateType: selectedTemplate,
       data: JSON.parse(JSON.stringify(formData)),
-      timestamp: Date.now(),
       title,
       appTitle,
       appSubtitle,
     };
-    setSavedContents((prev) => [newItem, ...prev]);
-    toast.success('현재 내용이 저장되었습니다.');
+    const newItem: SavedContent = {
+      id: crypto.randomUUID(),
+      ...payload,
+      timestamp: Date.now(),
+    };
+    try {
+      const res = await savedContentsApi.post(payload, effectiveAccessToken) as { id: string; timestamp: number };
+      setSavedContents((prev) => [{ ...newItem, id: res.id, timestamp: res.timestamp }, ...prev]);
+      toast.success('현재 내용이 저장되었습니다.');
+    } catch {
+      setSavedContents((prev) => [newItem, ...prev]);
+      toast.success('현재 내용이 로컬에 저장되었습니다.');
+    }
   };
 
   const handleLoadSavedContent = (content: SavedContent) => {
@@ -212,7 +233,12 @@ export default function App() {
     setDrawerOpen(false);
   };
 
-  const handleDeleteSavedContent = (id: string) => {
+  const handleDeleteSavedContent = async (id: string) => {
+    try {
+      await savedContentsApi.delete(id, effectiveAccessToken);
+    } catch {
+      // API 실패해도 목록에서 제거 (로컬과 동기화)
+    }
     setSavedContents((prev) => prev.filter((c) => c.id !== id));
     toast.success('저장된 내용이 삭제되었습니다.');
   };

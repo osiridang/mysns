@@ -14,6 +14,7 @@ export const API_ENDPOINTS = {
   TEXT_IMAGES: '/text-images',
   LOGO_IMAGES: '/logo-images',
   SAVED_IMAGES: '/saved-images',
+  SAVED_CONTENTS: '/saved-contents',
 };
 
 // Default Images

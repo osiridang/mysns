@@ -135,6 +135,15 @@ export const imageApi = {
     apiClient.delete(`${API_ENDPOINTS.LOGO_IMAGES}/${imageId}`, accessToken),
 };
 
+/** 저장된 내용 (Supabase saved_contents 테이블) - 토큰 없어도 anon 공용 목록 사용 가능 */
+export const savedContentsApi = {
+  get: (accessToken?: string) => apiClient.get(API_ENDPOINTS.SAVED_CONTENTS, accessToken),
+  post: (body: { templateType: string; data: any; title: string; appTitle?: string; appSubtitle?: string }, accessToken?: string) =>
+    apiClient.post(API_ENDPOINTS.SAVED_CONTENTS, body, accessToken),
+  delete: (id: string, accessToken?: string) =>
+    apiClient.delete(`${API_ENDPOINTS.SAVED_CONTENTS}/${id}`, accessToken),
+};
+
 /** 앱 기본값: 다른 브라우저/기기에서도 동일한 값 표시 */
 export const appDefaultsApi = {
   get: () => apiClient.get(API_ENDPOINTS.APP_DEFAULTS),

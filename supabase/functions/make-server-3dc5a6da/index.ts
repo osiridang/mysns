@@ -185,6 +185,29 @@ const requireAuth = async (c: any, next: any) => {
   await next();
 };
 
+// 인증 optional: 토큰 있으면 user, 없으면 null (저장된 내용은 비로그인 시 공용 목록)
+const optionalAuth = async (c: any, next: any) => {
+  if (DEV_MODE) {
+    c.set('user', null);
+    await next();
+    return;
+  }
+  const accessToken = c.req.header('Authorization')?.split(' ')[1];
+  if (!accessToken) {
+    c.set('user', null);
+    await next();
+    return;
+  }
+  const { data, error } = await supabase.auth.getUser(accessToken);
+  if (error || !data.user) {
+    c.set('user', null);
+    await next();
+    return;
+  }
+  c.set('user', data.user);
+  await next();
+};
+
 // Health check endpoint
 app.get("/make-server-3dc5a6da/health", (c) => {
   return c.json({ status: "ok" });
@@ -772,6 +795,101 @@ app.delete("/make-server-3dc5a6da/logo-images/:id", requireAuth, async (c) => {
     return c.json({ success: true });
   } catch (error) {
     return c.json({ error: `Failed to delete logo image: ${error.message}` }, 500);
+  }
+});
+
+// ----- Saved contents (저장된 내용) -----
+const getSavedContentsUserId = (c: any) => {
+  const user = c.get("user");
+  if (!user || user.id === "dev-user") return null;
+  return user.id;
+};
+
+// 목록 조회
+app.get("/make-server-3dc5a6da/saved-contents", optionalAuth, async (c) => {
+  try {
+    const user_id = getSavedContentsUserId(c);
+    const { data, error } = await supabase
+      .from("saved_contents")
+      .select("id, template_type, data, title, app_title, app_subtitle, created_at")
+      .eq("user_id", user_id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("saved-contents list error:", error);
+      return c.json({ error: error.message }, 500);
+    }
+    const list = (data || []).map((row: any) => ({
+      id: row.id,
+      templateType: row.template_type,
+      data: row.data,
+      title: row.title,
+      appTitle: row.app_title ?? undefined,
+      appSubtitle: row.app_subtitle ?? undefined,
+      timestamp: new Date(row.created_at).getTime(),
+    }));
+    return c.json({ contents: list });
+  } catch (e) {
+    console.error("saved-contents list error:", e);
+    return c.json({ error: String(e) }, 500);
+  }
+});
+
+// 저장
+app.post("/make-server-3dc5a6da/saved-contents", optionalAuth, async (c) => {
+  try {
+    const user_id = getSavedContentsUserId(c);
+    const body = await c.req.json().catch(() => ({}));
+    const { id, templateType, data: contentData, title, appTitle, appSubtitle } = body;
+    if (!templateType || !contentData || !title) {
+      return c.json({ error: "templateType, data, title are required" }, 400);
+    }
+    const row: any = {
+      user_id,
+      template_type: templateType,
+      data: contentData,
+      title: String(title).slice(0, 500),
+      app_title: appTitle != null ? String(appTitle).slice(0, 500) : null,
+      app_subtitle: appSubtitle != null ? String(appSubtitle).slice(0, 500) : null,
+    };
+    if (id && /^[0-9a-f-]{36}$/i.test(id)) {
+      row.id = id;
+    }
+    const { data: inserted, error } = await supabase.from("saved_contents").insert(row).select("id, created_at").single();
+    if (error) {
+      console.error("saved-contents insert error:", error);
+      return c.json({ error: error.message }, 500);
+    }
+    return c.json({
+      id: inserted.id,
+      timestamp: new Date(inserted.created_at).getTime(),
+    });
+  } catch (e) {
+    console.error("saved-contents insert error:", e);
+    return c.json({ error: String(e) }, 500);
+  }
+});
+
+// 삭제
+app.delete("/make-server-3dc5a6da/saved-contents/:id", optionalAuth, async (c) => {
+  try {
+    const id = c.req.param("id");
+    const user_id = getSavedContentsUserId(c);
+    let q = supabase.from("saved_contents").delete().eq("id", id);
+    if (user_id !== null) {
+      q = q.eq("user_id", user_id);
+    } else {
+      q = q.is("user_id", null);
+    }
+    const { error } = await q;
+    if (error) {
+      console.error("saved-contents delete error:", error);
+      return c.json({ error: error.message }, 500);
+    }
+    return c.json({ success: true });
+  } catch (e) {
+    console.error("saved-contents delete error:", e);
+    return c.json({ error: String(e) }, 500);
   }
 });
 
