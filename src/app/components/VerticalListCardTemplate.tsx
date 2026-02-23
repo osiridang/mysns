@@ -1,7 +1,8 @@
 import { forwardRef } from 'react';
 import { Zap, Sprout, Globe, TrendingUp, Heart, Star, Users, Target, Lightbulb, Award, LucideIcon } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import { DEFAULT_IMAGES } from '@/constants';
+import { CopyrightBanner } from './CopyrightBanner';
+import { DEFAULT_IMAGES, getTemplateDimensions } from '@/constants';
 
 // 기본 이미지 사용
 const profileImage = DEFAULT_IMAGES.profile;
@@ -22,19 +23,21 @@ interface VerticalListCardTemplateProps {
   textImageUrls?: string[];
   logoUrl?: string;
   iconNames?: string[];
-  copyrightUrl?: string;
+  copyrightArea?: import('@/types').CopyrightArea;
 }
 
 export const VerticalListCardTemplate = forwardRef<HTMLDivElement, VerticalListCardTemplateProps>(
-  ({ headlines = [], items = [], bgColor, imageUrl, backgroundImageUrl, textImageUrls = [], logoUrl, iconNames = [], copyrightUrl }, ref) => {
+  ({ headlines = [], items = [], bgColor, imageUrl, backgroundImageUrl, textImageUrls = [], logoUrl, iconNames = [], copyrightArea }, ref) => {
     const defaultItems = [
       '탄소 제로의 심장, 새만금 국제에너지도시',
-      '스마트 농생명, 미래 양보의 핵심',
+      '스마트 농생명, 미래 안보의 핵심',
       'K컬쳐 글로벌 허브',
       '지강 발전, 지역 도약 모델 창출'
     ];
     
     const displayItems = items.length > 0 ? items : defaultItems;
+
+    const personGradient = 'linear-gradient(to top, rgba(30, 58, 138, 1) 15%, rgba(30, 58, 138, 0.5) 45%, transparent 100%)';
 
     // 아이콘 매핑
     const iconMap: Record<string, LucideIcon> = {
@@ -60,8 +63,8 @@ export const VerticalListCardTemplate = forwardRef<HTMLDivElement, VerticalListC
         ref={ref}
         className="relative overflow-hidden"
         style={{
-          width: '720px',
-          height: '1200px',
+          width: `${getTemplateDimensions('vertical-list-card').width}px`,
+          height: `${getTemplateDimensions('vertical-list-card').height}px`,
           backgroundImage: backgroundImageUrl 
             ? `url(${backgroundImageUrl})` 
             : `linear-gradient(135deg, ${bgColor} 0%, #1e3a8a 100%)`,
@@ -78,10 +81,9 @@ export const VerticalListCardTemplate = forwardRef<HTMLDivElement, VerticalListC
           />
         </div>
 
-        {/* 메인 메시지 */}
+        {/* 메인 메시지 - 제목 줄 1~2 대형, 3~5 추가 제목은 동일 영역에 표시 (2번 테마와 동일하게 최대 5개) */}
         <div className="absolute top-0 left-0 right-0 px-10 pt-16 pb-10">
           <div className="space-y-4">
-            <div className="w-20 h-1 bg-white/60" />
             {headlines.slice(0, 2).map((headline, index) => (
               <h2
                 key={index}
@@ -99,12 +101,29 @@ export const VerticalListCardTemplate = forwardRef<HTMLDivElement, VerticalListC
                 {headline.text}
               </h2>
             ))}
+            {headlines.slice(2, 5).map((headline, index) => (
+              <h2
+                key={index + 2}
+                className="text-white leading-tight whitespace-pre-line"
+                style={{
+                  fontSize: '2rem',
+                  fontWeight: 700,
+                  textShadow: '0 4px 20px rgba(0,0,0,0.5)',
+                  letterSpacing: '-0.02em',
+                  marginTop: '-0.5rem',
+                  fontFamily: 'GmarketSansBold, sans-serif',
+                  color: headline.color
+                }}
+              >
+                {headline.text}
+              </h2>
+            ))}
           </div>
         </div>
 
         {/* 인물 사진 */}
-        <div className="absolute top-[15%] left-1/2 transform -translate-x-1/2">
-          <div className="relative overflow-visible" style={{ width: '600px', height: '600px' }}>
+        <div className="absolute top-[15%] left-[58%] transform -translate-x-1/2">
+          <div className="relative overflow-visible" style={{ width: '500px', height: '500px' }}>
             <ImageWithFallback
               src={imageUrl || profileImage} 
               alt="이원택 후보" 
@@ -113,16 +132,15 @@ export const VerticalListCardTemplate = forwardRef<HTMLDivElement, VerticalListC
                 objectPosition: 'center 0%'
               }}
             />
-
-            {/* 하단 그라데이션 오버레이 - 전체 너비 */}
-            <div 
+            {/* gradient overlay, same as theme 2 */}
+            <div
               className="absolute pointer-events-none"
               style={{
                 left: '-135px',
                 right: '-135px',
                 bottom: '-150px',
                 height: '50%',
-                background: 'linear-gradient(to top, rgba(30, 58, 138, 1) 15%, rgba(30, 58, 138, 0.5) 45%, transparent 100%)'
+                background: personGradient
               }}
             />
           </div>
@@ -190,14 +208,9 @@ export const VerticalListCardTemplate = forwardRef<HTMLDivElement, VerticalListC
           {/* 텍스트 이미지 삭제됨 */}
         </div>
 
-        {/* 하단 카피라이트 이미지 - 너비 100%, 높이 자동, 하단 여백 없음 */}
-        {typeof copyrightUrl === 'string' && copyrightUrl.trim() !== '' && (
+        {copyrightArea && (
           <div className="absolute bottom-0 left-0 right-0 z-20">
-            <ImageWithFallback
-              src={copyrightUrl}
-              alt="Copyright"
-              className="w-full h-auto object-contain object-center opacity-90"
-            />
+            <CopyrightBanner data={copyrightArea} />
           </div>
         )}
       </div>

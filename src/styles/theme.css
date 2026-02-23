@@ -179,3 +179,9 @@
     line-height: 1.5;
   }
 }
+
+/* 카드/템플릿 내 모든 텍스트: 단어 유지 (한글에 중요!) */
+.template-canvas,
+.template-canvas * {
+  word-break: keep-all;
+}

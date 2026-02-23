@@ -1,16 +1,29 @@
-import type { TemplateData } from '@/types';
+import type { TemplateData, CopyrightArea } from '@/types';
 import { DEFAULT_IMAGES } from '@/constants';
 import 로텐드홀 from '@/assets/로텐드홀.png';
 import 내란수괴 from '@/assets/내란수괴.png';
+
+export const DEFAULT_COPYRIGHT_AREA: CopyrightArea = {
+  left1: '가장 개혁적인 도지사',
+  left2: '일 잘하는 따듯한 도지사',
+  centerName: '이원택',
+  right1: '제21대, 22대 국회의원',
+  right2: '전) 전라북도 정부부지사',
+  right3: '전) 청와대 행정관',
+  highlightWord: '도지사',
+  highlightWord2: '도지사',
+};
 
 export const DEFAULT_TEMPLATE_DATA: TemplateData = {
   'horizontal-card': {
     headline1: '미래는 이미',
     headline2: '우리안에 있습니다',
+    headline1Color: '#FFFFFF',
+    headline2Color: '#FFFFFF',
     subheadline: '이원택과 함께!',
     items: [
       '탄소 제로의 심장, 새만금 국제에너지도시',
-      '스마트 농생명, 미래 양보의 핵심',
+      '스마트 농생명, 미래 안보의 핵심',
       'K컬쳐 글로벌 허브',
       '지강 발전, 지역 도약 모델 창출',
     ],
@@ -18,9 +31,9 @@ export const DEFAULT_TEMPLATE_DATA: TemplateData = {
     bgColor: '#2A48A0',
     imageUrl: DEFAULT_IMAGES.profile,
     backgroundImageUrl: '',
-    textImageUrls: [DEFAULT_IMAGES.label] as string[],
+    textImageUrls: [...DEFAULT_IMAGES.defaultTextImages],
     logoUrl: DEFAULT_IMAGES.logo,
-    copyrightUrl: DEFAULT_IMAGES.copyright,
+    copyrightArea: DEFAULT_COPYRIGHT_AREA,
   },
   'quad-layout': {
     headlines: [
@@ -30,12 +43,12 @@ export const DEFAULT_TEMPLATE_DATA: TemplateData = {
     bgColor: '#2A48A0',
     imageUrl: DEFAULT_IMAGES.profile,
     backgroundImageUrl: '',
-    textImageUrls: [DEFAULT_IMAGES.label] as string[],
+    textImageUrls: [...DEFAULT_IMAGES.defaultTextImages],
     logoUrl: DEFAULT_IMAGES.logo,
-    copyrightUrl: DEFAULT_IMAGES.copyright,
+    copyrightArea: DEFAULT_COPYRIGHT_AREA,
     items: [
       '탄소 제로의 심장, 새만금 국제에너지도시',
-      '스마트 농생명, 미래 양보의 핵심',
+      '스마트 농생명, 미래 안보의 핵심',
       'K컬쳐 글로벌 허브',
       '지강 발전, 지역 도약 모델 창출',
     ],
@@ -55,12 +68,12 @@ export const DEFAULT_TEMPLATE_DATA: TemplateData = {
     bgColor: '#2A48A0',
     imageUrl: DEFAULT_IMAGES.profile,
     backgroundImageUrl: '',
-    textImageUrls: [DEFAULT_IMAGES.label] as string[],
+    textImageUrls: [...DEFAULT_IMAGES.defaultTextImages],
     logoUrl: DEFAULT_IMAGES.logo,
-    copyrightUrl: DEFAULT_IMAGES.copyright,
+    copyrightArea: DEFAULT_COPYRIGHT_AREA,
     items: [
       '탄소 제로의 심장, 새만금 국제에너지도시',
-      '스마트 농생명, 미래 양보의 핵심',
+      '스마트 농생명, 미래 안보의 핵심',
       'K컬쳐 글로벌 허브',
       '지강 발전, 지역 도약 모델 창출',
     ],
@@ -74,9 +87,9 @@ export const DEFAULT_TEMPLATE_DATA: TemplateData = {
     bgColor: '#2A48A0',
     imageUrl: DEFAULT_IMAGES.profile,
     backgroundImageUrl: '',
-    textImageUrls: [DEFAULT_IMAGES.label] as string[],
+    textImageUrls: [...DEFAULT_IMAGES.defaultTextImages],
     logoUrl: DEFAULT_IMAGES.logo,
-    copyrightUrl: DEFAULT_IMAGES.copyright,
+    copyrightArea: DEFAULT_COPYRIGHT_AREA,
   },
   'square-layout': {
     headline1: '내란 우두머리 무기징역!',
@@ -90,6 +103,6 @@ export const DEFAULT_TEMPLATE_DATA: TemplateData = {
     image2Caption: '비상행동 촛불집회(25.3월_광화문)',
     bgColor: '#2A48A0',
     logoUrl: DEFAULT_IMAGES.logo,
-    copyrightUrl: DEFAULT_IMAGES.copyright,
+    copyrightArea: DEFAULT_COPYRIGHT_AREA,
   },
 };

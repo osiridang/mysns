@@ -3,7 +3,7 @@ import { Button } from '@/app/components/ui/button';
 import { Trash2, Upload, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { imageApi } from '@/utils/api';
-import { UPLOAD_LIMITS } from '@/constants';
+import { UPLOAD_LIMITS, DEFAULT_IMAGES } from '@/constants';
 
 interface TextImage {
   id: string;
@@ -28,6 +28,18 @@ export function TextImageManager({ selectedImageUrl, onSelectImage, accessToken 
   // Convert to array for consistency
   const selectedUrls = Array.isArray(selectedImageUrl) ? selectedImageUrl : (selectedImageUrl ? [selectedImageUrl] : []);
 
+  /** API 실패 시 사용할 기본 텍스트 이미지 (assets) */
+  const getDefaultTextImagesAsList = (): TextImage[] => {
+    const names = ['가장강력한전북', '이원택과', '더불어'];
+    return (DEFAULT_IMAGES.defaultTextImages || []).map((url, i) => ({
+      id: `default-text-${i}`,
+      filename: `${names[i]}.svg`,
+      name: names[i],
+      url,
+      createdAt: new Date().toISOString(),
+    }));
+  };
+
   const fetchImages = async () => {
     setLoading(true);
     try {
@@ -35,7 +47,13 @@ export function TextImageManager({ selectedImageUrl, onSelectImage, accessToken 
       setImages(data.images || []);
     } catch (error) {
       console.error('Error fetching text images:', error);
-      toast.error('텍스트 이미지를 불러오는데 실패했습니다.');
+      const fallback = getDefaultTextImagesAsList();
+      setImages(fallback);
+      if (fallback.length > 0) {
+        toast.info('서버에서 목록을 불러오지 못해 기본 이미지를 표시합니다.');
+      } else {
+        toast.error('텍스트 이미지를 불러오는데 실패했습니다.');
+      }
     } finally {
       setLoading(false);
     }
@@ -202,16 +220,18 @@ export function TextImageManager({ selectedImageUrl, onSelectImage, accessToken 
                   </div>
                 )}
 
-                {/* Delete Button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(image.id);
-                  }}
-                  className="absolute bottom-8 right-2 bg-red-500 text-white rounded p-1.5 hover:bg-red-600 transition-colors"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
+                {/* Delete Button (기본 이미지는 삭제 불가) */}
+                {!image.id.startsWith('default-text-') && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(image.id);
+                    }}
+                    className="absolute bottom-8 right-2 bg-red-500 text-white rounded p-1.5 hover:bg-red-600 transition-colors"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                )}
 
                 {/* Name */}
                 <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white px-2 py-1">

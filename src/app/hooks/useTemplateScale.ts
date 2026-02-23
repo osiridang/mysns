@@ -1,5 +1,5 @@
 import { useState, useEffect, RefObject } from 'react';
-import { TEMPLATE_DIMENSIONS } from '@/constants';
+import { getTemplateDimensions } from '@/constants';
 
 export function useTemplateScale(
   containerRef: RefObject<HTMLDivElement | null>,
@@ -13,7 +13,7 @@ export function useTemplateScale(
       if (!containerRef.current) return;
       const containerWidth = containerRef.current.clientWidth;
       const containerHeight = containerRef.current.clientHeight;
-      const { width: templateWidth, height: templateHeight } = TEMPLATE_DIMENSIONS;
+      const { width: templateWidth, height: templateHeight } = getTemplateDimensions(selectedTemplate);
 
       let paddingPercent = 0.02;
       if (containerWidth >= 1024) paddingPercent = 0.06;

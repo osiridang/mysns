@@ -17,9 +17,9 @@ import { Button } from '@/app/components/ui/button';
 import { Sheet, SheetContent } from '@/app/components/ui/sheet';
 import { Download, Menu, X } from 'lucide-react';
 import { toPng } from 'html-to-image';
-import { TemplateType, TemplateData } from '@/types';
+import { TemplateType, TemplateData, HorizontalCardData, CopyrightArea } from '@/types';
 import { STORAGE_KEYS } from '@/constants';
-import { DEFAULT_TEMPLATE_DATA } from '@/data/defaultTemplate';
+import { DEFAULT_TEMPLATE_DATA, DEFAULT_COPYRIGHT_AREA } from '@/data/defaultTemplate';
 import { appDefaultsApi, checkSupabaseConnection } from '@/utils/api';
 import { useTemplateScale } from '@/app/hooks/useTemplateScale';
 import { NAV_TABS, type MenuTab } from '@/app/config/navTabs';
@@ -50,15 +50,49 @@ export default function App() {
           else if (sVal !== undefined) merged[field] = sVal;
         });
         if (key === 'horizontal-card') {
-          const h = merged as any;
-          if (h.bodyText && (!h.items || h.items.length === 0)) {
-            h.items = [h.bodyText];
-            h.iconNames = ['Zap', 'Sprout', 'Globe', 'TrendingUp'];
+            const h = merged as any;
+            if (h.bodyText && (!h.items || h.items.length === 0)) {
+              h.items = [h.bodyText];
+              h.iconNames = ['Zap', 'Sprout', 'Globe', 'TrendingUp'];
+            }
+            delete h.bodyText;
           }
-          delete h.bodyText;
+        // 기본 로고(LOGO_white.png) 고정: 브라우저/저장값이 빈 경우 항상 기본 로고 유지
+        if ('logoUrl' in merged && !(merged as any).logoUrl?.trim()) {
+          (merged as any).logoUrl = (DEFAULT_TEMPLATE_DATA[key] as any).logoUrl ?? defBlock.logoUrl;
         }
+        // 저장된 문구 마이그레이션: 양보 → 안보 (데이터 자체를 수정)
+        const fixYangbo = (s: unknown): unknown => {
+          if (typeof s !== 'string' || !s.includes('양보')) return s;
+          return s.replace(/양보/g, '안보');
+        };
+        if (Array.isArray(merged.items)) {
+          (merged as any).items = (merged as any).items.map((item: string) => fixYangbo(item));
+        }
+        if (Array.isArray((merged as any).headlines)) {
+          (merged as any).headlines = (merged as any).headlines.map((h: { text?: string; color?: string }) =>
+            h && typeof h.text === 'string' ? { ...h, text: fixYangbo(h.text) as string } : h
+          );
+        }
+        if (Array.isArray((merged as any).bodyTexts)) {
+          (merged as any).bodyTexts = (merged as any).bodyTexts.map((item: string) => fixYangbo(item));
+        }
+        if (Array.isArray((merged as any).itemDetails)) {
+          (merged as any).itemDetails = (merged as any).itemDetails.map((row: string[]) =>
+            Array.isArray(row) ? row.map((cell) => fixYangbo(cell)) : row
+          );
+        }
+        // 카피라이트: 단일 텍스트/이미지 → 3단 영역 마이그레이션
+        const defCopyright = (DEFAULT_TEMPLATE_DATA[key] as any).copyrightArea;
+        (merged as any).copyrightArea = (merged as any).copyrightArea ?? defCopyright;
+        delete (merged as any).copyrightText;
+        delete (merged as any).copyrightUrl;
         result[key] = merged as TemplateData[TemplateType];
       });
+      // 수정된 데이터를 localStorage에 다시 저장 (DB 정리 → 다음부터는 안보만 로드됨)
+      try {
+        localStorage.setItem(STORAGE_KEYS.TEMPLATE_DATA, JSON.stringify(result));
+      } catch (_) {}
       return result;
     } catch (error) {
       console.error('Failed to load saved data:', error);
@@ -85,8 +119,13 @@ export default function App() {
   // 각 템플릿별로 독립적인 데이터 관리
   const [templateData, setTemplateData] = useState(loadSavedData());
   
-  // 현재 선택된 템플릿의 데이터 (탭 이동 시 undefined 방지)
-  const formData = templateData[selectedTemplate] ?? DEFAULT_TEMPLATE_DATA[selectedTemplate];
+  // 현재 선택된 템플릿의 데이터 (기본값과 병합해 누락된 필드 없이 미리보기/편집에 사용)
+  const formData = (() => {
+    const def = DEFAULT_TEMPLATE_DATA[selectedTemplate] as Record<string, unknown>;
+    const cur = templateData[selectedTemplate] as Record<string, unknown> | undefined;
+    if (!cur || typeof cur !== 'object') return def as TemplateData[TemplateType];
+    return { ...def, ...cur } as TemplateData[TemplateType];
+  })();
 
   const templateRef = useRef<HTMLDivElement>(null);
   const { scale, containerPadding } = useTemplateScale(containerRef, selectedTemplate);
@@ -178,9 +217,37 @@ export default function App() {
               }
               delete h.bodyText;
             }
+        // 기본 로고(LOGO_white.png) 고정: 빈 값이면 코드 기본값으로 복원
+            const defLogo = (DEFAULT_TEMPLATE_DATA[key] as any)?.logoUrl;
+            if (defLogo && !(merged as any).logoUrl?.trim()) (merged as any).logoUrl = defLogo;
+        // 저장된 문구 마이그레이션: 양보 → 안보 (반드시 안보로 통일)
+        const fixYangbo = (s: unknown): unknown => {
+          if (typeof s !== 'string' || !s.includes('양보')) return s;
+          return s.replace(/양보/g, '안보');
+        };
+        if (Array.isArray(merged.items)) {
+          (merged as any).items = (merged as any).items.map((item: string) => fixYangbo(item));
+        }
+        if (Array.isArray((merged as any).headlines)) {
+          (merged as any).headlines = (merged as any).headlines.map((h: { text?: string; color?: string }) =>
+            h && typeof h.text === 'string' ? { ...h, text: fixYangbo(h.text) as string } : h
+          );
+        }
+        if (Array.isArray((merged as any).bodyTexts)) {
+          (merged as any).bodyTexts = (merged as any).bodyTexts.map((item: string) => fixYangbo(item));
+        }
+        if (Array.isArray((merged as any).itemDetails)) {
+          (merged as any).itemDetails = (merged as any).itemDetails.map((row: string[]) =>
+            Array.isArray(row) ? row.map((cell) => fixYangbo(cell)) : row
+          );
+        }
+        const defCopyright = (DEFAULT_TEMPLATE_DATA[key] as any).copyrightArea;
+        (merged as any).copyrightArea = (merged as any).copyrightArea ?? defCopyright;
+        delete (merged as any).copyrightText;
+        delete (merged as any).copyrightUrl;
             result[key] = merged as TemplateData[TemplateType];
-          });
-          return result;
+      });
+      return result;
         });
 
         if (typeof serverTitle === 'string' && serverTitle.trim() !== '') setAppTitle(serverTitle.trim());
@@ -194,21 +261,24 @@ export default function App() {
   }, []);
 
   const handleFormChange = (field: string, value: any) => {
-    setTemplateData(prev => ({
-      ...prev,
-      [selectedTemplate]: {
-        ...prev[selectedTemplate],
-        [field]: value
-      }
-    }));
+    setTemplateData(prev => {
+      const def = DEFAULT_TEMPLATE_DATA[selectedTemplate] as Record<string, unknown>;
+      const cur = prev[selectedTemplate] as Record<string, unknown> | undefined;
+      const base = (cur && typeof cur === 'object') ? { ...def, ...cur } : { ...def };
+      return {
+        ...prev,
+        [selectedTemplate]: { ...base, [field]: value } as TemplateData[TemplateType]
+      };
+    });
   };
 
-  /** 하단 문구(카피라이트)는 모든 템플릿에 동일 적용 */
-  const handleCopyrightChange = (url: string) => {
+  /** 하단 문구(카피라이트)는 모든 템플릿에 동일 적용 - 3단 텍스트 */
+  const handleCopyrightChange = (partial: Partial<CopyrightArea>) => {
     setTemplateData(prev => {
       const next = { ...prev };
       (Object.keys(next) as TemplateType[]).forEach((key) => {
-        next[key] = { ...next[key], copyrightUrl: url };
+        const current = (next[key] as any)?.copyrightArea ?? DEFAULT_COPYRIGHT_AREA;
+        next[key] = { ...next[key], copyrightArea: { ...current, ...partial } } as TemplateData[TemplateType];
       });
       return next;
     });
@@ -238,7 +308,7 @@ export default function App() {
         items: metadata.items ?? (metadata.bodyText ? [metadata.bodyText] : prev[metadata.template]?.items ?? []),
         itemDetails: metadata.itemDetails ?? prev[metadata.template]?.itemDetails ?? [],
         iconNames: metadata.iconNames ?? prev[metadata.template]?.iconNames ?? ['Zap', 'Sprout', 'Globe', 'TrendingUp'],
-        copyrightUrl: metadata.copyrightUrl ?? prev[metadata.template]?.copyrightUrl ?? ''
+        copyrightArea: metadata.copyrightArea ?? prev[metadata.template]?.copyrightArea ?? DEFAULT_COPYRIGHT_AREA
       } as TemplateData[TemplateType]
     }));
   };
@@ -275,8 +345,8 @@ export default function App() {
     const backgroundImageUrl = formData.backgroundImageUrl;
     const textImageUrls = formData.textImageUrls;
     const logoUrl = formData.logoUrl;
-    const copyrightUrl = formData.copyrightUrl && String(formData.copyrightUrl).trim() ? formData.copyrightUrl : '';
-    
+    const copyrightArea = (formData as any).copyrightArea ?? DEFAULT_COPYRIGHT_AREA;
+
     switch (selectedTemplate) {
       case 'horizontal-card':
         return (
@@ -284,6 +354,8 @@ export default function App() {
             ref={templateRef}
             headline1={formData.headline1}
             headline2={formData.headline2}
+            headline1Color={(formData as HorizontalCardData).headline1Color}
+            headline2Color={(formData as HorizontalCardData).headline2Color}
             subheadline={formData.subheadline}
             items={formData.items}
             iconNames={formData.iconNames}
@@ -292,7 +364,7 @@ export default function App() {
             backgroundImageUrl={backgroundImageUrl}
             textImageUrls={textImageUrls}
             logoUrl={logoUrl}
-            copyrightUrl={copyrightUrl}
+            copyrightArea={copyrightArea}
           />
         );
       case 'quad-layout':
@@ -308,17 +380,17 @@ export default function App() {
             textImageUrls={textImageUrls}
             logoUrl={logoUrl}
             iconNames={formData.iconNames}
-            copyrightUrl={copyrightUrl}
+            copyrightArea={copyrightArea}
           />
         );
-      case 'vertical-list-card':
+      case 'vertical-list-card': {
+        const vlHeadlines = Array.isArray(formData.headlines)
+          ? formData.headlines
+          : (DEFAULT_TEMPLATE_DATA['vertical-list-card'] as { headlines: { text: string; color: string }[] }).headlines;
         return (
           <VerticalListCardTemplate
             ref={templateRef}
-            headlines={formData.headlines || [
-              { text: formData.headline1 || '', color: '#FFFFFF' },
-              { text: formData.headline2 || '', color: '#01FE05' }
-            ]}
+            headlines={vlHeadlines}
             items={formData.items}
             bgColor={formData.bgColor}
             imageUrl={finalImageUrl}
@@ -326,9 +398,10 @@ export default function App() {
             textImageUrls={textImageUrls}
             logoUrl={logoUrl}
             iconNames={formData.iconNames}
-            copyrightUrl={copyrightUrl}
+            copyrightArea={copyrightArea}
           />
         );
+      }
       case 'square-layout':
         return (
           <SquareLayoutTemplate
@@ -344,7 +417,7 @@ export default function App() {
             image2Caption={formData.image2Caption}
             bgColor={formData.bgColor}
             logoUrl={formData.logoUrl}
-            copyrightUrl={copyrightUrl}
+            copyrightArea={copyrightArea}
           />
         );
       case 'vertical-card':
@@ -360,7 +433,7 @@ export default function App() {
             backgroundImageUrl={backgroundImageUrl}
             textImageUrls={textImageUrls}
             logoUrl={logoUrl}
-            copyrightUrl={copyrightUrl}
+            copyrightArea={copyrightArea}
           />
         );
       default:
@@ -487,8 +560,8 @@ export default function App() {
             {activeTab === 'copyright' && (
               <div>
                 <CopyrightImageManager
-                  selectedImageUrl={formData.copyrightUrl ?? ''}
-                  onSelectImage={handleCopyrightChange}
+                  copyrightArea={(formData as any).copyrightArea ?? DEFAULT_COPYRIGHT_AREA}
+                  onCopyrightChange={handleCopyrightChange}
                 />
               </div>
             )}
@@ -508,11 +581,14 @@ export default function App() {
           }}
         >
           <div className="shadow-2xl rounded-lg overflow-hidden flex-shrink-0">
-            <div style={{
-              transform: `scale(${scale})`,
-              transformOrigin: 'center center',
-              transition: 'transform 0.3s ease'
-            }}>
+            <div
+              className="template-canvas"
+              style={{
+                transform: `scale(${scale})`,
+                transformOrigin: 'center center',
+                transition: 'transform 0.3s ease'
+              }}
+            >
               {renderTemplate()}
             </div>
           </div>
@@ -621,8 +697,8 @@ export default function App() {
             {activeTab === 'copyright' && (
               <div>
                 <CopyrightImageManager
-                  selectedImageUrl={formData.copyrightUrl ?? ''}
-                  onSelectImage={handleCopyrightChange}
+                  copyrightArea={(formData as any).copyrightArea ?? DEFAULT_COPYRIGHT_AREA}
+                  onCopyrightChange={handleCopyrightChange}
                 />
               </div>
             )}

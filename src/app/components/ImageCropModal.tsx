@@ -14,17 +14,30 @@ export function ImageCropModal({ isOpen, imageUrl, onCropComplete, onCancel }: I
   const [zoom, setZoom] = useState(1);
   const [processing, setProcessing] = useState(false);
 
+  const dataUrlToBlob = (dataUrl: string): Blob => {
+    const [header, base64] = dataUrl.split(',');
+    const mime = header.match(/:(.*?);/)?.[1] ?? 'image/png';
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new Blob([bytes], { type: mime });
+  };
+
   const handleComplete = async () => {
     if (!imageUrl) return;
 
     setProcessing(true);
     try {
-      // Fetch the original image and convert to blob
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
+      let blob: Blob;
+      if (imageUrl.startsWith('data:')) {
+        blob = dataUrlToBlob(imageUrl);
+      } else {
+        const response = await fetch(imageUrl);
+        blob = await response.blob();
+      }
       onCropComplete(blob);
     } catch (error) {
-      console.error('Error uploading image:', error);
+      console.error('Error processing image:', error);
       setProcessing(false);
     }
   };

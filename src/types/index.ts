@@ -1,5 +1,19 @@
 export type TemplateType = 'horizontal-card' | 'quad-layout' | 'vertical-list-card' | 'vertical-card' | 'square-layout';
 
+/** 하단 카피라이트 영역 (이미지처럼 좌·중앙·우 3단 구성, 텍스트 입력) */
+export interface CopyrightArea {
+  left1: string;
+  left2: string;
+  centerName: string;
+  right1: string;
+  right2: string;
+  right3: string;
+  /** 1줄(좌측1)에서 색상 강조할 단어 */
+  highlightWord: string;
+  /** 2줄(좌측2)에서 색상 강조할 단어. 없으면 highlightWord 사용 */
+  highlightWord2?: string;
+}
+
 export interface Headline {
   text: string;
   color: string;
@@ -8,6 +22,8 @@ export interface Headline {
 export interface HorizontalCardData {
   headline1: string;
   headline2: string;
+  headline1Color?: string;
+  headline2Color?: string;
   subheadline: string;
   items: string[];
   iconNames: string[];
@@ -16,7 +32,7 @@ export interface HorizontalCardData {
   backgroundImageUrl: string;
   textImageUrls: string[];
   logoUrl: string;
-  copyrightUrl: string;
+  copyrightArea: CopyrightArea;
 }
 
 export interface QuadLayoutData {
@@ -29,7 +45,7 @@ export interface QuadLayoutData {
   items: string[];
   itemDetails: string[][];
   iconNames: string[];
-  copyrightUrl: string;
+  copyrightArea: CopyrightArea;
 }
 
 export interface VerticalListCardData {
@@ -41,7 +57,7 @@ export interface VerticalListCardData {
   logoUrl: string;
   items: string[];
   iconNames: string[];
-  copyrightUrl: string;
+  copyrightArea: CopyrightArea;
 }
 
 export interface VerticalCardData {
@@ -54,7 +70,7 @@ export interface VerticalCardData {
   backgroundImageUrl: string;
   textImageUrls: string[];
   logoUrl: string;
-  copyrightUrl: string;
+  copyrightArea: CopyrightArea;
 }
 
 export interface SquareLayoutData {
@@ -69,7 +85,7 @@ export interface SquareLayoutData {
   image2Caption?: string;
   bgColor: string;
   logoUrl: string;
-  copyrightUrl: string;
+  copyrightArea: CopyrightArea;
 }
 
 export type TemplateData = {

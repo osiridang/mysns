@@ -10,9 +10,9 @@ interface TemplateSelectorProps {
 }
 
 const templates = [
-  { id: 'horizontal-card' as TemplateType, number: 1, name: '2분할 레이아웃', description: '720 x 720px', aspectRatio: '1/1', icon: Square },
-  { id: 'quad-layout' as TemplateType, number: 2, name: '4분할 레이아웃', description: '720 x 1200px', aspectRatio: '1/1', icon: Grid2x2 },
-  { id: 'vertical-list-card' as TemplateType, number: 3, name: '세로 리스트 카드', description: '720 x 1200px', aspectRatio: '1/1', icon: List },
+  { id: 'horizontal-card' as TemplateType, number: 1, name: '2분할 레이아웃', description: '720 x 1080px', aspectRatio: '1/1', icon: Square },
+  { id: 'quad-layout' as TemplateType, number: 2, name: '4분할 레이아웃', description: '720 x 1080px', aspectRatio: '1/1', icon: Grid2x2 },
+  { id: 'vertical-list-card' as TemplateType, number: 3, name: '세로 리스트 카드', description: '720 x 1080px', aspectRatio: '1/1', icon: List },
   { id: 'square-layout' as TemplateType, number: 4, name: '정사각형 레이아웃', description: '720 x 720px', aspectRatio: '1/1', icon: LayoutGrid },
 ];
 

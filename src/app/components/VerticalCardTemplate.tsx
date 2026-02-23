@@ -1,5 +1,6 @@
 import { forwardRef } from 'react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { CopyrightBanner } from './CopyrightBanner';
 import { DEFAULT_IMAGES } from '@/constants';
 
 // 기본 이미지 사용
@@ -17,11 +18,11 @@ interface VerticalCardTemplateProps {
   backgroundImageUrl?: string;
   textImageUrls?: string[];
   logoUrl?: string;
-  copyrightUrl?: string;
+  copyrightArea?: import('@/types').CopyrightArea;
 }
 
 export const VerticalCardTemplate = forwardRef<HTMLDivElement, VerticalCardTemplateProps>(
-  ({ headline1, headline2, subheadline, bodyTexts, bgColor, imageUrl, backgroundImageUrl, textImageUrls = [], logoUrl, copyrightUrl }, ref) => {
+  ({ headline1, headline2, subheadline, bodyTexts, bgColor, imageUrl, backgroundImageUrl, textImageUrls = [], logoUrl, copyrightArea }, ref) => {
     return (
       <div
         ref={ref}
@@ -48,7 +49,6 @@ export const VerticalCardTemplate = forwardRef<HTMLDivElement, VerticalCardTempl
         {/* 상단 슬로건 영역 */}
         <div className="absolute top-0 left-0 right-0 px-10 pt-16 pb-10">
           <div className="space-y-4">
-            <div className="w-20 h-1 bg-white/60" />
             <h2 className="text-white font-extrabold leading-tight" style={{ fontSize: '3.5rem', textShadow: '0 4px 20px rgba(0,0,0,0.5)', letterSpacing: '-0.02em', fontFamily: 'GmarketSansBold, sans-serif' }}>
               {headline1 || '핵심 슬로건'}
             </h2>
@@ -119,14 +119,9 @@ export const VerticalCardTemplate = forwardRef<HTMLDivElement, VerticalCardTempl
           ))}
         </div>
 
-        {/* 하단 카피라이트 이미지 - 너비 100%, 높이 자동, 하단 여백 없음 */}
-        {typeof copyrightUrl === 'string' && copyrightUrl.trim() !== '' && (
+        {copyrightArea && (
           <div className="absolute bottom-0 left-0 right-0 z-20">
-            <ImageWithFallback
-              src={copyrightUrl}
-              alt="Copyright"
-              className="w-full h-auto object-contain object-center opacity-90"
-            />
+            <CopyrightBanner data={copyrightArea} />
           </div>
         )}
       </div>

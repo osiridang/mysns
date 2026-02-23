@@ -1,5 +1,6 @@
 import { forwardRef } from 'react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { CopyrightBanner } from './CopyrightBanner';
 import { DEFAULT_IMAGES } from '@/constants';
 
 const SIZE = 720;
@@ -16,11 +17,11 @@ interface SquareLayoutTemplateProps {
   image2Caption?: string;
   bgColor: string;
   logoUrl?: string;
-  copyrightUrl?: string;
+  copyrightArea?: import('@/types').CopyrightArea;
 }
 
 export const SquareLayoutTemplate = forwardRef<HTMLDivElement, SquareLayoutTemplateProps>(
-  ({ headline1, headline2, headline1Color = '#FFFFFF', headline2Color = '#FFFFFF', bodyText, image1, image2, image1Caption, image2Caption, bgColor, logoUrl, copyrightUrl }, ref) => {
+  ({ headline1, headline2, headline1Color = '#FFFFFF', headline2Color = '#FFFFFF', bodyText, image1, image2, image1Caption, image2Caption, bgColor, logoUrl, copyrightArea }, ref) => {
     return (
       <div
         ref={ref}
@@ -128,14 +129,9 @@ export const SquareLayoutTemplate = forwardRef<HTMLDivElement, SquareLayoutTempl
               )}
             </div>
           </div>
-          {/* 하단 카피라이트 - 사진 아래 별도 영역 */}
-          {typeof copyrightUrl === 'string' && copyrightUrl.trim() !== '' && (
+          {copyrightArea && (
             <div className="w-full flex-shrink-0">
-              <ImageWithFallback
-                src={copyrightUrl}
-                alt="Copyright"
-                className="w-full h-auto object-contain object-center opacity-90"
-              />
+              <CopyrightBanner data={copyrightArea} />
             </div>
           )}
         </div>

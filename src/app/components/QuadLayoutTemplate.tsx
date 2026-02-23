@@ -1,7 +1,8 @@
 import { forwardRef } from 'react';
 import { Zap, Sprout, Globe, TrendingUp, Heart, Star, Users, Target, Lightbulb, Award, LucideIcon } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import { DEFAULT_IMAGES } from '@/constants';
+import { CopyrightBanner } from './CopyrightBanner';
+import { DEFAULT_IMAGES, getTemplateDimensions } from '@/constants';
 
 // 기본 이미지 사용
 const profileImage = DEFAULT_IMAGES.profile;
@@ -23,14 +24,14 @@ interface QuadLayoutTemplateProps {
   textImageUrls?: string[];
   logoUrl?: string;
   iconNames?: string[];
-  copyrightUrl?: string;
+  copyrightArea?: import('@/types').CopyrightArea;
 }
 
 export const QuadLayoutTemplate = forwardRef<HTMLDivElement, QuadLayoutTemplateProps>(
-  ({ headlines = [], items = [], itemDetails, bgColor, imageUrl, backgroundImageUrl, textImageUrls = [], logoUrl, iconNames = [], copyrightUrl }, ref) => {
+  ({ headlines = [], items = [], itemDetails, bgColor, imageUrl, backgroundImageUrl, textImageUrls = [], logoUrl, iconNames = [], copyrightArea }, ref) => {
     const defaultItems = [
       '탄소 제로의 심장, 새만금 국제에너지도시',
-      '스마트 농생명, 미래 양보의 핵심',
+      '스마트 농생명, 미래 안보의 핵심',
       'K컬쳐 글로벌 허브',
       '지강 발전, 지역 도약 모델 창출'
     ];
@@ -70,8 +71,8 @@ export const QuadLayoutTemplate = forwardRef<HTMLDivElement, QuadLayoutTemplateP
         ref={ref}
         className="relative overflow-hidden"
         style={{
-          width: '720px',
-          height: '1200px',
+          width: `${getTemplateDimensions('quad-layout').width}px`,
+          height: `${getTemplateDimensions('quad-layout').height}px`,
           backgroundImage: backgroundImageUrl 
             ? `url(${backgroundImageUrl})` 
             : `linear-gradient(135deg, ${bgColor} 0%, #1e3a8a 100%)`,
@@ -91,7 +92,6 @@ export const QuadLayoutTemplate = forwardRef<HTMLDivElement, QuadLayoutTemplateP
         {/* 메인 메시지 */}
         <div className="absolute top-0 left-0 right-0 px-10 pt-16 pb-10">
           <div className="space-y-4">
-            <div className="w-20 h-1 bg-white/60" />
             {headlines.slice(0, 2).map((headline, index) => (
               <h2
                 key={index}
@@ -113,7 +113,7 @@ export const QuadLayoutTemplate = forwardRef<HTMLDivElement, QuadLayoutTemplateP
         </div>
 
         {/* 인물 사진 */}
-        <div className="absolute top-[15%] left-1/2 transform -translate-x-1/2">
+        <div className="absolute top-[15%] left-[58%] transform -translate-x-1/2">
           <div className="relative" style={{ width: '450px', height: '500px' }}>
             <ImageWithFallback
               src={imageUrl || profileImage} 
@@ -194,8 +194,8 @@ export const QuadLayoutTemplate = forwardRef<HTMLDivElement, QuadLayoutTemplateP
           </div>
         )}
 
-        {/* 4개 정책 카드 그리드 */}
-        <div className="absolute bottom-44 left-0 right-0 px-6">
+        {/* 4개 정책 카드 그리드 - 높이 줄여서 리스트를 위로 */}
+        <div className="absolute left-0 right-0 px-6" style={{ top: '460px' }}>
           <div className="grid grid-cols-2 gap-3">
             {displayItems.map((item, index) => {
               const Icon = icons[index];
@@ -225,7 +225,7 @@ export const QuadLayoutTemplate = forwardRef<HTMLDivElement, QuadLayoutTemplateP
                   <h3 
                     className="text-white font-bold mb-2.5 leading-tight"
                     style={{ 
-                      fontSize: '1.3rem',
+                      fontSize: '1.5rem',
                       fontFamily: 'GmarketSansBold, sans-serif'
                     }}
                   >
@@ -237,8 +237,8 @@ export const QuadLayoutTemplate = forwardRef<HTMLDivElement, QuadLayoutTemplateP
                     {displayItemDetails[index].map((detail, detailIndex) => (
                       <li 
                         key={detailIndex}
-                        className="text-blue-100 flex items-start"
-                        style={{ fontSize: '1rem' }}
+                        className="flex items-start"
+                        style={{ fontSize: '1.15rem', color: '#ffffff' }}
                       >
                         <span className="mr-1.5 mt-0.5">•</span>
                         <span className="leading-tight">{detail}</span>
@@ -270,14 +270,9 @@ export const QuadLayoutTemplate = forwardRef<HTMLDivElement, QuadLayoutTemplateP
           {/* 텍스트 이미지 삭제됨 */}
         </div>
 
-        {/* 하단 카피라이트 이미지 - 너비 100%, 높이 자동, 하단 여백 없음 */}
-        {typeof copyrightUrl === 'string' && copyrightUrl.trim() !== '' && (
+        {copyrightArea && (
           <div className="absolute bottom-0 left-0 right-0 z-20">
-            <ImageWithFallback
-              src={copyrightUrl}
-              alt="Copyright"
-              className="w-full h-auto object-contain object-center opacity-90"
-            />
+            <CopyrightBanner data={copyrightArea} />
           </div>
         )}
       </div>

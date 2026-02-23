@@ -142,6 +142,19 @@ export function EditorPanel({ templateType, formData, onFormChange }: EditorPane
               onChange={(e) => onFormChange('headline1', e.target.value)}
               placeholder="미래는 이미"
             />
+            <div className="flex items-center gap-2 mt-1.5">
+              <input
+                type="color"
+                className="h-9 w-14 cursor-pointer rounded border border-gray-200"
+                value={(formData as HorizontalCardData).headline1Color || '#FFFFFF'}
+                onChange={(e) => onFormChange('headline1Color', e.target.value)}
+              />
+              <Input
+                className="flex-1 font-mono text-sm"
+                value={(formData as HorizontalCardData).headline1Color || '#FFFFFF'}
+                onChange={(e) => onFormChange('headline1Color', e.target.value)}
+              />
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="headline2">제목 (둘째 줄)</Label>
@@ -151,6 +164,19 @@ export function EditorPanel({ templateType, formData, onFormChange }: EditorPane
               onChange={(e) => onFormChange('headline2', e.target.value)}
               placeholder="우리안에 있습니다"
             />
+            <div className="flex items-center gap-2 mt-1.5">
+              <input
+                type="color"
+                className="h-9 w-14 cursor-pointer rounded border border-gray-200"
+                value={(formData as HorizontalCardData).headline2Color || '#FFFFFF'}
+                onChange={(e) => onFormChange('headline2Color', e.target.value)}
+              />
+              <Input
+                className="flex-1 font-mono text-sm"
+                value={(formData as HorizontalCardData).headline2Color || '#FFFFFF'}
+                onChange={(e) => onFormChange('headline2Color', e.target.value)}
+              />
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="subheadline">부제목</Label>

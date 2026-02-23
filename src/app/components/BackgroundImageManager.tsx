@@ -38,7 +38,8 @@ export function BackgroundImageManager({ selectedImageUrl, onSelectImage, access
       setImages(data.images || []);
     } catch (error) {
       console.error('Error fetching background images:', error);
-      toast.error('배경 이미지를 불러오는데 실패했습니다.');
+      setImages([]);
+      toast.info('서버에서 목록을 불러오지 못했습니다. 배경색을 사용하거나 이미지를 업로드해 보세요.');
     } finally {
       setLoading(false);
     }
@@ -78,30 +79,27 @@ export function BackgroundImageManager({ selectedImageUrl, onSelectImage, access
   const handleCropComplete = async (croppedBlob: Blob) => {
     setUploading(true);
     setCropModalOpen(false);
-    
-    try {
-      // Convert blob to base64
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          const imageData = e.target?.result as string;
-          await imageApi.uploadBackgroundImage(imageData, fileName, accessToken);
-          toast.success('배경 이미지가 업로드되었습니다!');
-          fetchImages();
-        } catch (err) {
-          console.error('Error uploading image:', err);
-          toast.error('이미지 업로드에 실패했습니다.');
-        } finally {
-          setUploading(false);
-        }
-      };
 
-      reader.readAsDataURL(croppedBlob);
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      toast.error('이미지 업로드에 실패했습니다.');
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const imageData = e.target?.result as string;
+      try {
+        await imageApi.uploadBackgroundImage(imageData, fileName, accessToken);
+        toast.success('배경 이미지가 업로드되었습니다!');
+        fetchImages();
+      } catch (err) {
+        console.error('Error uploading image:', err);
+        toast.error('서버에 저장하지 못했습니다. 현재 카드에만 적용됩니다.');
+        onSelectImage(imageData);
+      } finally {
+        setUploading(false);
+      }
+    };
+    reader.onerror = () => {
+      toast.error('이미지 처리에 실패했습니다.');
       setUploading(false);
-    }
+    };
+    reader.readAsDataURL(croppedBlob);
   };
 
   const handleCropCancel = () => {
