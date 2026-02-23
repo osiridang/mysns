@@ -51,7 +51,8 @@ export function EditorPanel({ templateType, formData, onFormChange }: EditorPane
       setProfileImages(data.images || []);
     } catch (error) {
       console.error('Error fetching profile images:', error);
-      toast.error('프로필 이미지를 불러오는데 실패했습니다.');
+      // 실패 시 토스트 없이 빈 목록 유지 (로컬 업로드로 계속 사용 가능, 반복 알림 방지)
+      setProfileImages([]);
     } finally {
       setLoading(false);
     }
