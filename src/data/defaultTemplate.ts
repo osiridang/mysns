@@ -37,8 +37,8 @@ export const DEFAULT_TEMPLATE_DATA: TemplateData = {
     headlines: [
       { text: '미래는 이미', color: '#FFFFFF' },
       { text: '우리안에 있습니다', color: '#01FE05' },
-      { text: '', color: '#FFFFFF' }, // 제목 줄 3 (얼굴 좌측)
-      { text: '', color: '#FFFFFF' }, // 제목 줄 4 (얼굴 우측)
+      { text: '이원택과 함께', color: '#FFFFFF' },
+      { text: '전북이 미래입니다', color: '#FFFFFF' },
     ],
     bgColor: '#2A48A0',
     imageUrl: DEFAULT_IMAGES.profile,
@@ -64,6 +64,8 @@ export const DEFAULT_TEMPLATE_DATA: TemplateData = {
     headlines: [
       { text: '미래는 이미', color: '#FFFFFF' },
       { text: '우리안에 있습니다', color: '#01FE05' },
+      { text: '이원택과 함께', color: '#FFFFFF' },
+      { text: '전북이 미래입니다', color: '#FFFFFF' },
     ],
     bgColor: '#2A48A0',
     imageUrl: DEFAULT_IMAGES.profile,
