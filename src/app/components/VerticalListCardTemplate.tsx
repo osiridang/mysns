@@ -104,7 +104,7 @@ export const VerticalListCardTemplate = forwardRef<HTMLDivElement, VerticalListC
                 key={index + 2}
                 className="text-white leading-tight whitespace-pre-line"
                 style={{
-                  fontSize: '2rem',
+                  fontSize: '45px',
                   fontWeight: 700,
                   textShadow: '0 4px 20px rgba(0,0,0,0.5)',
                   letterSpacing: '-0.02em',

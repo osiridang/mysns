@@ -93,7 +93,7 @@ export default function App() {
           const defHeadlines = (DEFAULT_TEMPLATE_DATA[key] as any)?.headlines as { text: string; color: string }[] | undefined;
           const curHeadlines = (merged as any).headlines as { text: string; color: string }[] | undefined;
           if (Array.isArray(defHeadlines) && defHeadlines.length > 0) {
-            const maxLen = Math.max(curHeadlines?.length ?? 0, defHeadlines.length);
+            const maxLen = Math.max(curHeadlines?.length ?? 0, defHeadlines.length, 4);
             const mergedHeadlines: { text: string; color: string }[] = [];
             for (let i = 0; i < maxLen; i++) {
               const s = curHeadlines?.[i];
@@ -103,6 +103,11 @@ export default function App() {
               } else if (d?.text != null) {
                 mergedHeadlines.push({ text: d.text, color: d.color ?? '#FFFFFF' });
               }
+            }
+            // 항상 최소 4개 보장 (어디서 접속해도 1~4번 제목 노출)
+            while (mergedHeadlines.length < 4 && defHeadlines[mergedHeadlines.length]) {
+              const idx = mergedHeadlines.length;
+              mergedHeadlines.push({ text: defHeadlines[idx].text, color: defHeadlines[idx].color ?? '#FFFFFF' });
             }
             (merged as any).headlines = mergedHeadlines.length > 0 ? mergedHeadlines : (curHeadlines ?? defHeadlines);
           }
@@ -269,24 +274,6 @@ export default function App() {
     toast.success('저장된 내용이 삭제되었습니다.');
   };
 
-  /** 현재 템플릿 데이터·앱 제목/부제목·선택 템플릿을 서버에 앱 기본값으로 저장 (다른 브라우저/기기에서도 동일 적용) */
-  const handleSaveAppDefaults = async () => {
-    try {
-      await appDefaultsApi.save(
-        {
-          templateData: JSON.parse(JSON.stringify(templateData)),
-          appTitle,
-          appSubtitle,
-          selectedTemplate,
-        },
-        effectiveAccessToken
-      );
-      toast.success('기본값이 저장되었습니다.');
-    } catch {
-      toast.error('기본값 저장에 실패했습니다.');
-    }
-  };
-
   // 개발 시 Supabase 연결 여부 콘솔에 출력
   useEffect(() => {
     if (!import.meta.env.DEV) return;
@@ -375,7 +362,7 @@ export default function App() {
           const defHeadlines = (DEFAULT_TEMPLATE_DATA[key] as any)?.headlines as { text: string; color: string }[] | undefined;
           const curHeadlines = (merged as any).headlines as { text: string; color: string }[] | undefined;
           if (Array.isArray(defHeadlines) && defHeadlines.length > 0) {
-            const maxLen = Math.max(curHeadlines?.length ?? 0, defHeadlines.length);
+            const maxLen = Math.max(curHeadlines?.length ?? 0, defHeadlines.length, 4);
             const mergedHeadlines: { text: string; color: string }[] = [];
             for (let i = 0; i < maxLen; i++) {
               const s = curHeadlines?.[i];
@@ -385,6 +372,11 @@ export default function App() {
               } else if (d?.text != null) {
                 mergedHeadlines.push({ text: d.text, color: d.color ?? '#FFFFFF' });
               }
+            }
+            // 항상 최소 4개 보장 (어디서 접속해도 1~4번 제목 노출)
+            while (mergedHeadlines.length < 4 && defHeadlines[mergedHeadlines.length]) {
+              const idx = mergedHeadlines.length;
+              mergedHeadlines.push({ text: defHeadlines[idx].text, color: defHeadlines[idx].color ?? '#FFFFFF' });
             }
             (merged as any).headlines = mergedHeadlines.length > 0 ? mergedHeadlines : (curHeadlines ?? defHeadlines);
           }
@@ -614,10 +606,6 @@ export default function App() {
             <Button onClick={handleSaveCurrentContent} size="sm" variant="outline" className="gap-2 flex-shrink-0">
               <Save className="w-4 h-4" />
               <span className="hidden md:inline">현재 내용 저장</span>
-            </Button>
-            <Button onClick={handleSaveAppDefaults} size="sm" variant="outline" className="gap-2 flex-shrink-0">
-              <Save className="w-4 h-4" />
-              <span className="hidden md:inline">기본값 저장</span>
             </Button>
           </div>
         </div>
