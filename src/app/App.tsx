@@ -106,7 +106,14 @@ export default function App() {
     return (saved as TemplateType) || 'horizontal-card';
   });
   const [activeTab, setActiveTab] = useState<MenuTab>('template');
-  
+
+  // 4번(정사각형) 레이아웃 선택 시 후보 얼굴 관리 탭 비활성화 → 다른 탭으로 전환
+  useEffect(() => {
+    if (selectedTemplate === 'square-layout' && activeTab === 'profile') {
+      setActiveTab('edit');
+    }
+  }, [selectedTemplate, activeTab]);
+
   // 앱 제목 관리
   const [appTitle, setAppTitle] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.APP_TITLE);
@@ -580,20 +587,25 @@ export default function App() {
         {/* GNB 메뉴 - 데스크톱 */}
         <div className="border-t hidden md:block">
           <nav className="flex overflow-x-auto">
-            {NAV_TABS.map(({ tab, label, icon: Icon }) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`flex-1 px-4 md:px-6 py-2 md:py-3 flex items-center justify-center gap-2 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
-                  activeTab === tab
-                    ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span className="hidden md:inline">{label}</span>
-              </button>
-            ))}
+            {NAV_TABS.map(({ tab, label, icon: Icon }) => {
+              const isProfileDisabled = tab === 'profile' && selectedTemplate === 'square-layout';
+              return (
+                <button
+                  key={tab}
+                  type="button"
+                  disabled={isProfileDisabled}
+                  onClick={() => !isProfileDisabled && setActiveTab(tab)}
+                  className={`flex-1 px-4 md:px-6 py-2 md:py-3 flex items-center justify-center gap-2 text-xs md:text-sm font-medium transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed ${
+                    activeTab === tab
+                      ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span className="hidden md:inline">{label}</span>
+                </button>
+              );
+            })}
           </nav>
         </div>
       </header>
@@ -729,23 +741,30 @@ export default function App() {
 
           {/* 드로어 GNB 메뉴 */}
           <nav className="border-b divide-y">
-            {NAV_TABS.map(({ tab, label, icon: Icon }) => (
-              <button
-                key={tab}
-                onClick={() => {
-                  setActiveTab(tab);
-                  setDrawerOpen(false);
-                }}
-                className={`w-full px-4 py-3 flex items-center gap-3 text-sm font-medium transition-colors ${
-                  activeTab === tab
-                    ? 'bg-blue-50 text-blue-600'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {label}
-              </button>
-            ))}
+            {NAV_TABS.map(({ tab, label, icon: Icon }) => {
+              const isProfileDisabled = tab === 'profile' && selectedTemplate === 'square-layout';
+              return (
+                <button
+                  key={tab}
+                  type="button"
+                  disabled={isProfileDisabled}
+                  onClick={() => {
+                    if (!isProfileDisabled) {
+                      setActiveTab(tab);
+                      setDrawerOpen(false);
+                    }
+                  }}
+                  className={`w-full px-4 py-3 flex items-center gap-3 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                    activeTab === tab
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {label}
+                </button>
+              );
+            })}
           </nav>
 
           {/* 드로어 콘텐츠 */}
