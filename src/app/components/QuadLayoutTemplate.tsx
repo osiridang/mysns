@@ -89,13 +89,13 @@ export const QuadLayoutTemplate = forwardRef<HTMLDivElement, QuadLayoutTemplateP
           />
         </div>
 
-        {/* 메인 메시지 */}
-        <div className="absolute top-0 left-0 right-0 px-10 pt-16 pb-10">
+        {/* 메인 메시지 - 제목 줄 1~2 대형, 3~5 추가 제목은 3번 템플릿처럼 주욱 밑으로 (얼굴 우측 배치 없음) */}
+        <div className="absolute top-0 left-0 right-0 px-10 pt-16 pb-10 z-10">
           <div className="space-y-4">
             {headlines.slice(0, 2).map((headline, index) => (
               <h2
                 key={index}
-                className="text-white leading-tight whitespace-pre-line text-center"
+                className="text-white leading-tight whitespace-pre-line text-left"
                 style={{
                   fontSize: index === 0 ? '3.75rem' : '4.75rem',
                   fontWeight: 700,
@@ -109,11 +109,28 @@ export const QuadLayoutTemplate = forwardRef<HTMLDivElement, QuadLayoutTemplateP
                 {headline.text}
               </h2>
             ))}
+            {headlines.slice(2, 5).map((headline, index) => (
+              <h2
+                key={index + 2}
+                className="text-white leading-tight whitespace-pre-line text-left"
+                style={{
+                  fontSize: '40px',
+                  fontWeight: 700,
+                  textShadow: '0 4px 20px rgba(0,0,0,0.5)',
+                  letterSpacing: '-0.02em',
+                  marginTop: '-0.5rem',
+                  fontFamily: 'GmarketSansBold, sans-serif',
+                  color: headline.color
+                }}
+              >
+                {headline.text}
+              </h2>
+            ))}
           </div>
         </div>
 
         {/* 인물 사진 */}
-        <div className="absolute top-[15%] left-[58%] transform -translate-x-1/2">
+        <div className="absolute top-[15%] left-[calc(58%+50px)] transform -translate-x-1/2">
           <div className="relative" style={{ width: '450px', height: '500px' }}>
             <ImageWithFallback
               src={imageUrl || profileImage} 
@@ -139,60 +156,6 @@ export const QuadLayoutTemplate = forwardRef<HTMLDivElement, QuadLayoutTemplateP
             />
           </div>
         </div>
-
-        {/* 제목 3: 얼굴 좌측 - 메인 컨테이너 직속 */}
-        {headlines[2] && (
-          <div 
-            className="absolute"
-            style={{ 
-              left: '80px',
-              top: '20%',
-              zIndex: 15 
-            }}
-          >
-            <h2
-              className="text-white leading-tight whitespace-pre-line"
-              style={{
-                fontSize: '2.5rem',
-                fontWeight: 700,
-                textShadow: '0 4px 20px rgba(0,0,0,0.7)',
-                letterSpacing: '-0.02em',
-                fontFamily: 'GmarketSansBold, sans-serif',
-                color: headlines[2].color,
-                textAlign: 'right',
-                direction: 'rtl'
-              }}
-            >
-              {headlines[2].text}
-            </h2>
-          </div>
-        )}
-
-        {/* 제목 4: 얼굴 우측 - 메인 컨테이너 직속 */}
-        {headlines[3] && (
-          <div 
-            className="absolute"
-            style={{ 
-              right: '80px',
-              top: '20%',
-              zIndex: 15 
-            }}
-          >
-            <h2
-              className="text-white leading-tight whitespace-pre-line"
-              style={{
-                fontSize: '2.5rem',
-                fontWeight: 700,
-                textShadow: '0 4px 20px rgba(0,0,0,0.7)',
-                letterSpacing: '-0.02em',
-                fontFamily: 'GmarketSansBold, sans-serif',
-                color: headlines[3].color
-              }}
-            >
-              {headlines[3].text}
-            </h2>
-          </div>
-        )}
 
         {/* 4개 정책 카드 그리드 - 높이 줄여서 리스트를 위로 */}
         <div className="absolute left-0 right-0 px-6" style={{ top: '460px' }}>

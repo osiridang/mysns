@@ -19,7 +19,7 @@ const LEFT_LINE_STYLE: React.CSSProperties = {
 };
 
 const CENTER_NAME_STYLE: React.CSSProperties = {
-  fontSize: '72px',
+  fontSize: '70px',
   lineHeight: 1,
   letterSpacing: '-0.02em',
   fontFamily: FONT_FAMILY,
@@ -79,7 +79,7 @@ export function CopyrightBanner({ data, className = '' }: CopyrightBannerProps) 
 
   return (
     <div
-      className={`w-full flex items-center justify-between gap-2 px-4 py-4 ${className}`}
+      className={`w-full flex items-center justify-center gap-2 px-4 py-4 ${className}`}
       style={BANNER_STYLE}
     >
       <div className="flex-1 min-w-0 text-right flex flex-col justify-center gap-0.5" style={{ maxWidth: '40%' }}>
@@ -95,7 +95,7 @@ export function CopyrightBanner({ data, className = '' }: CopyrightBannerProps) 
         )}
       </div>
 
-      <div className="flex-shrink-0 px-2">
+      <div className="flex-shrink-0 px-2" style={{ lineHeight: '20px', paddingTop: '6px' }}>
         {centerName && (
           <div
             className="text-white font-extrabold text-center whitespace-nowrap"

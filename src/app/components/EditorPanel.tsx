@@ -315,8 +315,6 @@ export function EditorPanel({ templateType, formData, onFormChange }: EditorPane
                     </div>
                     <span className="text-sm font-semibold text-blue-900">
                       제목 줄 {index + 1}
-                      {index === 2 && ' (얼굴 좌측)'}
-                      {index === 3 && ' (얼굴 우측)'}
                     </span>
                   </div>
                   <button

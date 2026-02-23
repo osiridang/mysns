@@ -68,9 +68,10 @@ export const SquareLayoutTemplate = forwardRef<HTMLDivElement, SquareLayoutTempl
             {headline2 || '제목2'}
           </h2>
           <p
-            className="leading-relaxed"
+            className="leading-relaxed font-bold"
             style={{
-              fontSize: '1.3rem',
+              fontSize: '25px',
+              lineHeight: '33px',
               whiteSpace: 'pre-line',
               color: '#ffffff',
               letterSpacing: '-0.02em',

@@ -96,7 +96,7 @@ export const HorizontalCardTemplate = forwardRef<HTMLDivElement, HorizontalCardT
         </div>
 
         {/* 텍스트 콘텐츠: 위에 겹치도록 z-10, 하단 패딩으로 이미지와 살짝 겹침 */}
-        <div className="relative z-10 flex flex-col flex-1 min-h-0 px-8 pt-6 pb-24">
+        <div className="relative z-10 flex flex-col flex-1 min-h-0 px-12 pt-6 pb-24">
           {/* 로고 - 상단 */}
           <div className="flex-shrink-0 w-24 h-24 mb-4">
             <ImageWithFallback
@@ -139,12 +139,12 @@ export const HorizontalCardTemplate = forwardRef<HTMLDivElement, HorizontalCardT
           </h2>
 
           {/* 부제목 - 타이틀 바로 밑 */}
-          <p className="text-white/95 font-medium flex-shrink-0 mt-2" style={{ fontSize: '1.75rem', letterSpacing: '-0.02em', fontFamily: 'GmarketSansBold, sans-serif' }}>
+          <p className="text-white/95 font-medium flex-shrink-0 mt-2" style={{ fontSize: '35px', letterSpacing: '-0.02em', fontFamily: 'GmarketSansBold, sans-serif' }}>
             {subheadline || '부제목을 입력하세요'}
           </p>
 
           {/* 리스트 - 다른 템플릿과 유사한 박싱 효과 */}
-          <div className="flex-shrink-0 flex flex-col gap-2.5 mt-8 min-h-0">
+          <div className="flex-shrink-0 flex flex-col gap-2.5 mt-[52px] min-h-0">
             {(items.length > 0 ? items : [
               '탄소 제로의 심장, 새만금 국제에너지도시',
               '스마트 농생명, 미래 안보의 핵심',
@@ -170,7 +170,7 @@ export const HorizontalCardTemplate = forwardRef<HTMLDivElement, HorizontalCardT
                       <Icon size={18} className="text-white" strokeWidth={2.5} />
                     )}
                   </div>
-                  <span className="font-semibold" style={{ fontSize: '24px', letterSpacing: '-0.03em', color: '#ffffff', wordBreak: 'keep-all' }}>
+                  <span className="font-semibold" style={{ fontSize: '26px', letterSpacing: '-0.03em', color: '#ffffff', wordBreak: 'keep-all' }}>
                     {item}
                   </span>
                 </div>

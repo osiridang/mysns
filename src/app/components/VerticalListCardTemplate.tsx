@@ -122,7 +122,7 @@ export const VerticalListCardTemplate = forwardRef<HTMLDivElement, VerticalListC
         </div>
 
         {/* 인물 사진 */}
-        <div className="absolute top-[15%] left-[58%] transform -translate-x-1/2">
+        <div className="absolute top-[15%] left-[calc(58%+50px)] transform -translate-x-1/2">
           <div className="relative overflow-visible" style={{ width: '500px', height: '500px' }}>
             <ImageWithFallback
               src={imageUrl || profileImage} 

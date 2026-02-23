@@ -243,6 +243,24 @@ export default function App() {
     toast.success('저장된 내용이 삭제되었습니다.');
   };
 
+  /** 현재 템플릿 데이터·앱 제목/부제목·선택 템플릿을 서버에 앱 기본값으로 저장 (다른 브라우저/기기에서도 동일 적용) */
+  const handleSaveAppDefaults = async () => {
+    try {
+      await appDefaultsApi.save(
+        {
+          templateData: JSON.parse(JSON.stringify(templateData)),
+          appTitle,
+          appSubtitle,
+          selectedTemplate,
+        },
+        effectiveAccessToken
+      );
+      toast.success('기본값이 저장되었습니다.');
+    } catch {
+      toast.error('기본값 저장에 실패했습니다.');
+    }
+  };
+
   // 개발 시 Supabase 연결 여부 콘솔에 출력
   useEffect(() => {
     if (!import.meta.env.DEV) return;
@@ -551,6 +569,10 @@ export default function App() {
             <Button onClick={handleSaveCurrentContent} size="sm" variant="outline" className="gap-2 flex-shrink-0">
               <Save className="w-4 h-4" />
               <span className="hidden md:inline">현재 내용 저장</span>
+            </Button>
+            <Button onClick={handleSaveAppDefaults} size="sm" variant="outline" className="gap-2 flex-shrink-0">
+              <Save className="w-4 h-4" />
+              <span className="hidden md:inline">기본값 저장</span>
             </Button>
           </div>
         </div>
