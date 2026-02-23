@@ -1,47 +1,16 @@
-import { useEffect, useState } from 'react';
 import { Card } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import { Trash2, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import { SavedContent } from '@/types';
-import { STORAGE_KEYS } from '@/constants';
 
 interface SavedContentsPanelProps {
+  savedContents: SavedContent[];
   onLoadContent: (content: SavedContent) => void;
+  onDeleteContent: (id: string) => void;
 }
 
-export function SavedContentsPanel({ onLoadContent }: SavedContentsPanelProps) {
-  const [savedContents, setSavedContents] = useState<SavedContent[]>([]);
-
-  useEffect(() => {
-    loadSavedContents();
-  }, []);
-
-  const loadSavedContents = () => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.SAVED_CONTENTS);
-      if (saved) {
-        const contents = JSON.parse(saved);
-        setSavedContents(contents);
-      }
-    } catch (error) {
-      console.error('Failed to load saved contents:', error);
-      toast.error('저장된 내용을 불러오는데 실패했습니다.');
-    }
-  };
-
-  const deleteContent = (id: string) => {
-    try {
-      const updatedContents = savedContents.filter(content => content.id !== id);
-      localStorage.setItem(STORAGE_KEYS.SAVED_CONTENTS, JSON.stringify(updatedContents));
-      setSavedContents(updatedContents);
-      toast.success('내용이 삭제되었습니다.');
-    } catch (error) {
-      console.error('Failed to delete content:', error);
-      toast.error('삭제에 실패했습니다.');
-    }
-  };
-
+export function SavedContentsPanel({ savedContents, onLoadContent, onDeleteContent }: SavedContentsPanelProps) {
   const handleLoadContent = (content: SavedContent) => {
     onLoadContent(content);
     toast.success('내용을 불러왔습니다!');
@@ -86,7 +55,7 @@ export function SavedContentsPanel({ onLoadContent }: SavedContentsPanelProps) {
         <Card className="p-8 text-center">
           <p className="text-gray-500 mb-2">저장된 내용이 없습니다</p>
           <p className="text-xs text-gray-400">
-            '내용 저장' 버튼을 눌러 현재 편집 중인 내용을 저장하세요
+            아래 &apos;현재 내용 저장&apos; 버튼을 눌러 지금 편집 중인 내용을 저장하세요
           </p>
         </Card>
       ) : (
@@ -118,7 +87,7 @@ export function SavedContentsPanel({ onLoadContent }: SavedContentsPanelProps) {
                     불러오기
                   </Button>
                   <Button
-                    onClick={() => deleteContent(content.id)}
+                    onClick={() => onDeleteContent(content.id)}
                     size="sm"
                     variant="outline"
                     className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"

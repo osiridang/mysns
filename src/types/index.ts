@@ -110,4 +110,7 @@ export interface SavedContent {
   data: HorizontalCardData | QuadLayoutData | VerticalListCardData | VerticalCardData | SquareLayoutData;
   timestamp: number;
   title: string;
+  /** 앱 제목/부제목도 함께 저장·복원 */
+  appTitle?: string;
+  appSubtitle?: string;
 }

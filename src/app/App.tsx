@@ -6,6 +6,7 @@ import { BackgroundImageManager } from '@/app/components/BackgroundImageManager'
 import { TextImageManager } from '@/app/components/TextImageManager';
 import { LogoImageManager } from '@/app/components/LogoImageManager';
 import { CopyrightImageManager } from '@/app/components/CopyrightImageManager';
+import { SavedContentsPanel } from '@/app/components/SavedContentsPanel';
 import { publicAnonKey } from '@/config/supabase';
 import { Toaster, toast } from 'sonner';
 import { HorizontalCardTemplate } from '@/app/components/HorizontalCardTemplate';
@@ -15,9 +16,9 @@ import { VerticalCardTemplate } from '@/app/components/VerticalCardTemplate';
 import { SquareLayoutTemplate } from '@/app/components/SquareLayoutTemplate';
 import { Button } from '@/app/components/ui/button';
 import { Sheet, SheetContent } from '@/app/components/ui/sheet';
-import { Download, Menu, X } from 'lucide-react';
+import { Download, Menu, X, Save } from 'lucide-react';
 import { toPng } from 'html-to-image';
-import { TemplateType, TemplateData, HorizontalCardData, CopyrightArea } from '@/types';
+import { TemplateType, TemplateData, HorizontalCardData, CopyrightArea, SavedContent } from '@/types';
 import { STORAGE_KEYS } from '@/constants';
 import { DEFAULT_TEMPLATE_DATA, DEFAULT_COPYRIGHT_AREA } from '@/data/defaultTemplate';
 import { appDefaultsApi, checkSupabaseConnection } from '@/utils/api';
@@ -118,6 +119,16 @@ export default function App() {
   
   // 각 템플릿별로 독립적인 데이터 관리
   const [templateData, setTemplateData] = useState(loadSavedData());
+
+  // 저장된 내용 목록 (현재 지정 사항 스냅샷)
+  const [savedContents, setSavedContents] = useState<SavedContent[]>(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.SAVED_CONTENTS);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
   
   // 현재 선택된 템플릿의 데이터 (기본값과 병합해 누락된 필드 없이 미리보기/편집에 사용)
   const formData = (() => {
@@ -167,6 +178,44 @@ export default function App() {
       console.error('Failed to save app subtitle:', error);
     }
   }, [appSubtitle]);
+
+  // 🔄 저장된 내용 목록 변경 시 localStorage 반영
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.SAVED_CONTENTS, JSON.stringify(savedContents));
+    } catch (error) {
+      console.error('Failed to save contents list:', error);
+    }
+  }, [savedContents]);
+
+  // 현재 지정된 모든 사항을 스냅샷으로 저장
+  const handleSaveCurrentContent = () => {
+    const title = window.prompt('저장할 이름을 입력하세요', `저장 ${new Date().toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`)?.trim() || `저장 ${Date.now()}`;
+    const newItem: SavedContent = {
+      id: crypto.randomUUID(),
+      templateType: selectedTemplate,
+      data: JSON.parse(JSON.stringify(formData)),
+      timestamp: Date.now(),
+      title,
+      appTitle,
+      appSubtitle,
+    };
+    setSavedContents((prev) => [newItem, ...prev]);
+    toast.success('현재 내용이 저장되었습니다.');
+  };
+
+  const handleLoadSavedContent = (content: SavedContent) => {
+    setSelectedTemplate(content.templateType);
+    setTemplateData((prev) => ({ ...prev, [content.templateType]: content.data }));
+    if (content.appTitle != null) setAppTitle(content.appTitle);
+    if (content.appSubtitle != null) setAppSubtitle(content.appSubtitle);
+    setDrawerOpen(false);
+  };
+
+  const handleDeleteSavedContent = (id: string) => {
+    setSavedContents((prev) => prev.filter((c) => c.id !== id));
+    toast.success('저장된 내용이 삭제되었습니다.');
+  };
 
   // 개발 시 Supabase 연결 여부 콘솔에 출력
   useEffect(() => {
@@ -467,6 +516,10 @@ export default function App() {
               <Download className="w-4 h-4" />
               <span className="hidden md:inline">다운로드</span>
             </Button>
+            <Button onClick={handleSaveCurrentContent} size="sm" variant="outline" className="gap-2 flex-shrink-0">
+              <Save className="w-4 h-4" />
+              <span className="hidden md:inline">현재 내용 저장</span>
+            </Button>
           </div>
         </div>
         
@@ -562,6 +615,16 @@ export default function App() {
                 <CopyrightImageManager
                   copyrightArea={(formData as any).copyrightArea ?? DEFAULT_COPYRIGHT_AREA}
                   onCopyrightChange={handleCopyrightChange}
+                />
+              </div>
+            )}
+
+            {activeTab === 'saved' && (
+              <div>
+                <SavedContentsPanel
+                  savedContents={savedContents}
+                  onLoadContent={handleLoadSavedContent}
+                  onDeleteContent={handleDeleteSavedContent}
                 />
               </div>
             )}
@@ -699,6 +762,16 @@ export default function App() {
                 <CopyrightImageManager
                   copyrightArea={(formData as any).copyrightArea ?? DEFAULT_COPYRIGHT_AREA}
                   onCopyrightChange={handleCopyrightChange}
+                />
+              </div>
+            )}
+
+            {activeTab === 'saved' && (
+              <div>
+                <SavedContentsPanel
+                  savedContents={savedContents}
+                  onLoadContent={handleLoadSavedContent}
+                  onDeleteContent={handleDeleteSavedContent}
                 />
               </div>
             )}

@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
-import { Layout, Edit, ImageIcon, Image as ImageIconLucide, Type, Braces, FileText } from 'lucide-react';
+import { Layout, Edit, ImageIcon, Image as ImageIconLucide, Type, Braces, FileText, Save } from 'lucide-react';
 
-export type MenuTab = 'template' | 'edit' | 'profile' | 'background' | 'textimage' | 'logo' | 'copyright';
+export type MenuTab = 'template' | 'edit' | 'profile' | 'background' | 'textimage' | 'logo' | 'copyright' | 'saved';
 
 export interface NavTabConfig {
   tab: MenuTab;
@@ -17,4 +17,5 @@ export const NAV_TABS: NavTabConfig[] = [
   { tab: 'textimage', label: '텍스트 이미지', icon: Type },
   { tab: 'logo', label: '로고 이미지', icon: Braces },
   { tab: 'copyright', label: '하단 문구', icon: FileText },
+  { tab: 'saved', label: '저장된 내용', icon: Save },
 ];
