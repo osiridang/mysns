@@ -88,6 +88,25 @@ export default function App() {
         (merged as any).copyrightArea = (merged as any).copyrightArea ?? defCopyright;
         delete (merged as any).copyrightText;
         delete (merged as any).copyrightUrl;
+        // headlines: 저장값이 2개뿐이면 3·4번 코드 기본값으로 채움
+        if (key === 'quad-layout' || key === 'vertical-list-card') {
+          const defHeadlines = (DEFAULT_TEMPLATE_DATA[key] as any)?.headlines as { text: string; color: string }[] | undefined;
+          const curHeadlines = (merged as any).headlines as { text: string; color: string }[] | undefined;
+          if (Array.isArray(defHeadlines) && defHeadlines.length > 0) {
+            const maxLen = Math.max(curHeadlines?.length ?? 0, defHeadlines.length);
+            const mergedHeadlines: { text: string; color: string }[] = [];
+            for (let i = 0; i < maxLen; i++) {
+              const s = curHeadlines?.[i];
+              const d = defHeadlines[i];
+              if (s?.text != null && String(s.text).trim() !== '') {
+                mergedHeadlines.push({ text: s.text, color: s.color ?? '#FFFFFF' });
+              } else if (d?.text != null) {
+                mergedHeadlines.push({ text: d.text, color: d.color ?? '#FFFFFF' });
+              }
+            }
+            (merged as any).headlines = mergedHeadlines.length > 0 ? mergedHeadlines : (curHeadlines ?? defHeadlines);
+          }
+        }
         result[key] = merged as TemplateData[TemplateType];
       });
       // 수정된 데이터를 localStorage에 다시 저장 (DB 정리 → 다음부터는 안보만 로드됨)
@@ -351,6 +370,25 @@ export default function App() {
         (merged as any).copyrightArea = (merged as any).copyrightArea ?? defCopyright;
         delete (merged as any).copyrightText;
         delete (merged as any).copyrightUrl;
+        // headlines 배열: 서버가 2개만 보내면 3·4번이 빠지므로, 코드 기본값으로 채움 (다른 PC에서도 3·4번 노출)
+        if (key === 'quad-layout' || key === 'vertical-list-card') {
+          const defHeadlines = (DEFAULT_TEMPLATE_DATA[key] as any)?.headlines as { text: string; color: string }[] | undefined;
+          const curHeadlines = (merged as any).headlines as { text: string; color: string }[] | undefined;
+          if (Array.isArray(defHeadlines) && defHeadlines.length > 0) {
+            const maxLen = Math.max(curHeadlines?.length ?? 0, defHeadlines.length);
+            const mergedHeadlines: { text: string; color: string }[] = [];
+            for (let i = 0; i < maxLen; i++) {
+              const s = curHeadlines?.[i];
+              const d = defHeadlines[i];
+              if (s?.text != null && String(s.text).trim() !== '') {
+                mergedHeadlines.push({ text: s.text, color: s.color ?? '#FFFFFF' });
+              } else if (d?.text != null) {
+                mergedHeadlines.push({ text: d.text, color: d.color ?? '#FFFFFF' });
+              }
+            }
+            (merged as any).headlines = mergedHeadlines.length > 0 ? mergedHeadlines : (curHeadlines ?? defHeadlines);
+          }
+        }
             result[key] = merged as TemplateData[TemplateType];
       });
       return result;
