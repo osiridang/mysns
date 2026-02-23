@@ -24,6 +24,8 @@ import copyrightImage from '../assets/하단카피라이트.png';
 import textImage1 from '../assets/가장강력한전북.svg';
 import textImage2 from '../assets/이원택과.svg';
 import textImage3 from '../assets/더불어.svg';
+import squareImage1 from '../assets/로텐드홀.png';
+import squareImage2 from '../assets/내란수괴.png';
 
 export const DEFAULT_IMAGES = {
   profile: profileImage,
@@ -32,6 +34,9 @@ export const DEFAULT_IMAGES = {
   label: '',
   /** 텍스트이미지 페이지 기본값 (가장강력한전북, 이원택과, 더불어) */
   defaultTextImages: [textImage1, textImage2, textImage3] as string[],
+  /** 4. 정사각형 레이아웃 기본 사진 (다른 웹/기기에서도 유지) */
+  squareLayoutImage1: squareImage1,
+  squareLayoutImage2: squareImage2,
 };
 
 // Local Storage Keys

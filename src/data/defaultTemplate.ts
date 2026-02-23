@@ -1,7 +1,5 @@
 import type { TemplateData, CopyrightArea } from '@/types';
 import { DEFAULT_IMAGES } from '@/constants';
-import 로텐드홀 from '@/assets/로텐드홀.png';
-import 내란수괴 from '@/assets/내란수괴.png';
 
 export const DEFAULT_COPYRIGHT_AREA: CopyrightArea = {
   left1: '가장 개혁적인 도지사',
@@ -97,8 +95,8 @@ export const DEFAULT_TEMPLATE_DATA: TemplateData = {
     headline1Color: '#FFFFFF',
     headline2Color: '#FFFFFF',
     bodyText: '이제 다시 국민의 시간이 됐습니다.\n노벨평화상 후보로 추천받은 5천만 대한국민들이 두 눈 부릅뜨고 지켜볼 것입니다.',
-    image1: 로텐드홀,
-    image2: 내란수괴,
+    image1: DEFAULT_IMAGES.squareLayoutImage1,
+    image2: DEFAULT_IMAGES.squareLayoutImage2,
     image1Caption: '탄핵가결 감사인사 (241214 국회 로텐더홀)',
     image2Caption: '비상행동 촛불집회(25.3월_광화문)',
     bgColor: '#2A48A0',

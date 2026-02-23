@@ -295,6 +295,12 @@ export default function App() {
         // 기본 로고(LOGO_white.png) 고정: 빈 값이면 코드 기본값으로 복원
             const defLogo = (DEFAULT_TEMPLATE_DATA[key] as any)?.logoUrl;
             if (defLogo && !(merged as any).logoUrl?.trim()) (merged as any).logoUrl = defLogo;
+            // 4. 정사각형 레이아웃 기본 사진 고정: 빈 값이면 코드 기본값으로 복원 (다른 웹에서도 유지)
+            if (key === 'square-layout') {
+              const def = DEFAULT_TEMPLATE_DATA['square-layout'] as any;
+              if (def?.image1 && !(merged as any).image1?.trim()) (merged as any).image1 = def.image1;
+              if (def?.image2 && !(merged as any).image2?.trim()) (merged as any).image2 = def.image2;
+            }
         // 저장된 문구 마이그레이션: 양보 → 안보 (반드시 안보로 통일)
         const fixYangbo = (s: unknown): unknown => {
           if (typeof s !== 'string' || !s.includes('양보')) return s;
