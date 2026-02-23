@@ -19,7 +19,7 @@ export function SavedContentsPanel({ savedContents, onLoadContent, onDeleteConte
   const getTemplateDisplayName = (type: string) => {
     switch (type) {
       case 'horizontal-card':
-        return '1. 2분할 레이아웃';
+        return '1. 후보자 하단 배치';
       case 'quad-layout':
         return '2. 4분할 레이아웃';
       case 'vertical-list-card':

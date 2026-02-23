@@ -79,7 +79,7 @@ export function getTemplateDimensions(templateType: string): { width: number; he
 
 // 템플릿 타입 → 좌측 패널 표시용 한글 이름
 export const TEMPLATE_LABELS: Record<string, string> = {
-  'horizontal-card': '가로형 카드',
+  'horizontal-card': '후보자 하단 배치',
   'quad-layout': '4분할 레이아웃',
   'vertical-list-card': '세로 리스트 카드',
   'vertical-card': '세로형 카드',

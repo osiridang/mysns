@@ -144,7 +144,7 @@ export const HorizontalCardTemplate = forwardRef<HTMLDivElement, HorizontalCardT
           </p>
 
           {/* 리스트 - 다른 템플릿과 유사한 박싱 효과 */}
-          <div className="flex-shrink-0 flex flex-col gap-2.5 mt-[52px] min-h-0">
+          <div className="flex-shrink-0 flex flex-col gap-2.5 mt-[42px] min-h-0">
             {(items.length > 0 ? items : [
               '탄소 제로의 심장, 새만금 국제에너지도시',
               '스마트 농생명, 미래 안보의 핵심',
