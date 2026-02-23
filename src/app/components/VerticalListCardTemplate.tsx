@@ -37,8 +37,6 @@ export const VerticalListCardTemplate = forwardRef<HTMLDivElement, VerticalListC
     
     const displayItems = items.length > 0 ? items : defaultItems;
 
-    const personGradient = 'linear-gradient(to top, rgba(30, 58, 138, 1) 15%, rgba(30, 58, 138, 0.5) 45%, transparent 100%)';
-
     // 아이콘 매핑
     const iconMap: Record<string, LucideIcon> = {
       Zap,
@@ -121,18 +119,20 @@ export const VerticalListCardTemplate = forwardRef<HTMLDivElement, VerticalListC
           </div>
         </div>
 
-        {/* 인물 사진 */}
+        {/* 인물 사진 - 4분할 레이아웃과 동일: 하단 연장 + 그라데이션 */}
         <div className="absolute top-[15%] left-[calc(58%+50px)] transform -translate-x-1/2">
-          <div className="relative overflow-visible" style={{ width: '500px', height: '500px' }}>
+          <div className="relative" style={{ width: '450px', height: '500px' }}>
             <ImageWithFallback
-              src={imageUrl || profileImage} 
-              alt="이원택 후보" 
-              className="object-cover w-full h-full"
+              src={imageUrl || profileImage}
+              alt="이원택 후보"
+              className="object-cover"
               style={{
+                width: '600px',
+                height: '600px',
                 objectPosition: 'center 0%'
               }}
             />
-            {/* gradient overlay, same as theme 2 */}
+            {/* 하단 그라데이션 오버레이 - 4분할과 동일 */}
             <div
               className="absolute pointer-events-none"
               style={{
@@ -140,7 +140,7 @@ export const VerticalListCardTemplate = forwardRef<HTMLDivElement, VerticalListC
                 right: '-135px',
                 bottom: '-150px',
                 height: '50%',
-                background: personGradient
+                background: 'linear-gradient(to top, rgba(30, 58, 138, 1) 15%, rgba(30, 58, 138, 0.5) 45%, transparent 100%)'
               }}
             />
           </div>
